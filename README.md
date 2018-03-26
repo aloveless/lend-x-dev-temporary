@@ -4,4 +4,4 @@
 
 [ERC20.sol Contract](/contracts/ERC20.sol)
 
-Markup :  `code()`
+
