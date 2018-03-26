@@ -2,7 +2,7 @@
 
 ### [Contracts](/contracts)
 
-[Authorized.sol](/contracts/Authorized.sol) 
+[Authorized.sol](/contracts/Authorized.sol)  
 [ECRecovery.sol](/contracts/ECRecovery.sol)
 [ERC20.sol](/contracts/ERC20.sol)
 [ERC20Interface.sol](/contracts/ERC20Interface.sol)
