@@ -1,5 +1,7 @@
 # lend-x-dev-temporary
 
-# [Contracts](/contracts)
+### [Contracts](/contracts)
 
 [ERC20.sol Contract](/contracts/ERC20.sol)
+
+import ./contracts
