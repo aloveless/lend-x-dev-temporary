@@ -2,6 +2,6 @@
 
 ### [Contracts](/contracts)
 
-[ERC20.sol Contract](/contracts/ERC20.sol)
+[ERC20.sol](/contracts/ERC20.sol)
 
 
