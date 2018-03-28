@@ -14,6 +14,7 @@ The Lend-X Protocol is cool
 ##### [TokenRegistry.sol](/contracts/TokenRegistry.sol)
 
 ### Access Control
+##### MultiSig.sol
 ##### [Ownable.sol](/contracts/Ownable.sol)
 ##### [Authorized.sol](/contracts/Authorized.sol)
 
