@@ -60,17 +60,54 @@ contract Lend is Ownable {
         previousVersion = _previousVersion;
     }
     
-    function submitDebtRequest(address[5] _loanAddresses, uint256[9] _loanValues, bool[3] _loanOptions, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig) public isDeprecated isLocked returns(bytes32){
-        //require(validateLoanRequestArguments());
-        //require(tokenRegistry.validateToken(_tokenAddress));
+    function submitDebtRequest(address[9] _loanAddresses, uint256[15] _loanValues, uint256 _amountToLend, bool[3] _loanOptions, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig) public isDeprecated isLocked returns(bytes32){
         
-        Debt memory debt = Debt({
-
-            debtHash: getDebtHash(orderAddresses, orderValues)
+        //may only need this inside initialize function and for repayment, otherwise can probably get away with just the hash
+        DebtAgreement memory debt = DebtAgreement({
+            Lendee: _loanAddresses[1],
+            Lender: _loanAddresses[2],
+            PrincipalToken: _loanAddresses[3],
+            PaymentToken: _loanAddresses[4],
+            Underwriter: _loanAddresses[5],
+            CollateralToken: _loanAddresses[6],
+            Guarantor: _loanAddresses[7],
+            Agent: _loanAddresses[8],
+            Principal: _loanValues[0],
+            LoanStart: _loanValues[1],
+            OriginationFee: _loanValues[2],
+            LoanTerm: _loanValues[3],
+            PeriodicInterestRate: _loanValues[4],
+            PaymentAmount: _loanValues[5],
+            PaymentInterval: _loanValues[6],
+            LateFee: _loanValues[7],
+            CollateralAmount: _loanValues[8],
+            LoanDefaultPeriod: _loanValues[9],
+            GuarantorFee: _loanValues[10],
+            LendeeAgentFee: _loanValues[11],
+            LenderAgentFee: _loanValues[12],
+            Expires: _loanValues[13],
+            debtHash: getDebtHash(_loanAddresses, _loanValues)
         });
         
-        return = keccak256(
-            address(this),  //Lend Contract Address
+        //initializeLoan();
+        //require(validateArguments());
+        //require(tokenRegistry.validateToken(_tokenAddress));
+        
+        //Loan Values
+        externalStorage.setUIntValue(debt.debtHash, keccak256('Outstanding'), _amountToLend);
+
+        //Lender Values
+        externalStorage.setLenderUIntStorage(debt.debtHash, msg.sender, keccak256("LenderPrincipal"), _amountToLend);
+        
+        //Loan Config
+        externalStorage.setBooleanValue(debt.debtHash, keccak256("Initialized"), true);
+        
+        return debt.debtHash;
+    }
+    
+    function getDebtHash(address[9] _loanAddresses, uint256[15] _loanValues) public pure returns(bytes32){
+        return keccak256(
+            _loanAddresses[0],  //Lend Contract Address
             _loanAddresses[1],  //Lendee
             _loanAddresses[2],  //Lender
             _loanAddresses[3],  //Principal Token
@@ -94,31 +131,7 @@ contract Lend is Ownable {
             _loanValues[12],    //Lender Agent Fee
             _loanValues[13],    //Expires
             _loanValues[14]     //Salt
-        );
-        
-        //Loan Addresses
-        externalStorage.setAddressValue(requestID, keccak256('Principal'), msg.sender);
-        externalStorage.setAddressValue(requestID, keccak256('Guarantor'), _guarantor);
-        //Loan Values
-        externalStorage.setUIntValue(requestID, keccak256("Principal"), _loanValues[0]);
-        externalStorage.setUIntValue(requestID, keccak256("LendingPeriodEnd"), _loanValues[1]);
-        externalStorage.setUIntValue(requestID, keccak256("ClaimBy"), _loanValues[2]);
-        externalStorage.setUIntValue(requestID, keccak256("RepaymentDue"), _loanValues[3]);
-        externalStorage.setUIntValue(requestID, keccak256("InterestFreePeriod"), _loanValues[4]);
-        externalStorage.setUIntValue(requestID, keccak256("InterestRate"), _loanValues[5]);
-        externalStorage.setUIntValue(requestID, keccak256("PaymentInterval"), _loanValues[6]);
-        externalStorage.setUIntValue(requestID, keccak256("FixedRepaymentAmount"), _loanValues[7]);
-        externalStorage.setUIntValue(requestID, keccak256("LockUpPeriod"), _loanValues[8]);
-        //Loan Options
-        externalStorage.setBooleanValue(requestID, keccak256("ForgiveDebt"), _loanOptions[0]);
-        externalStorage.setBooleanValue(requestID, keccak256("PartialFunding"), _loanOptions[1]);
-        externalStorage.setBooleanValue(requestID, keccak256("Locked"), _loanOptions[2]);
-        externalStorage.setBooleanValue(requestID, keccak256("Exists"), true);
-        
-        //Lender Values
-        externalStorage.setLenderUIntStorage(requestID, _loanAddresses[2], keccak256("LenderPrincipal"), _loanValues[8]);
-        
-        return requestID;
+        ); 
     }
     
     function submitCollateralizedDebtRequest() public returns(bool){
@@ -136,6 +149,10 @@ contract Lend is Ownable {
         return _requestID;
     }
     
+    function forgiveDebt(uint256 requestID){
+        //externalStorage.LenderBooleanStorage(requestID, msg.sender, keccak256("ForgiveDebt"), true);
+    }
+    
     function validateLoanRequestArguments() internal pure returns(bool){
         
         return true;
@@ -150,7 +167,7 @@ contract Lend is Ownable {
     // }
     
     function getInterestAccrued(address _requestor) public view returns(uint256){
-        return externalStorage.getRequestCount(_requestor);
+        //return externalStorage.getRequestCount(_requestor);
     }
     
     // function getRequests(address _storage, address _requestor) external view returns(bytes32[] memory loans){
@@ -181,10 +198,6 @@ contract Lend is Ownable {
     
     function getBalance(address _token, address _owner, uint256 _gasLimit) public view returns(uint256){
         return ERC20Interface(_token).balanceOf.gas(_gasLimit)(_owner);
-    }
-    
-    function getDebtHash() public pure returns(bytes32){
-        
     }
     
     function validateSignature(address _signer, bytes32 _messageHash, bytes _sig) public pure returns(bool){
