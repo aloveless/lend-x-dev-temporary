@@ -26,8 +26,29 @@ contract Lend is Ownable {
     bool public deprecated  = false;
     uint16 constant public EXTERNAL_QUERY_GAS_LIMIT = 4999;
     
-    struct Debt {
-
+    struct DebtAgreement {
+        address Lendee;
+        address Lender;
+        address PrincipalToken;
+        address PaymentToken;
+        address Underwriter;
+        address CollateralToken;
+        address Guarantor;
+        address Agent;
+        uint256 Principal;
+        uint256 LoanStart;
+        uint256 OriginationFee;
+        uint256 LoanTerm;
+        uint256 PeriodicInterestRate;
+        uint256 PaymentAmount;
+        uint256 PaymentInterval;
+        uint256 LateFee;
+        uint256 CollateralAmount;
+        uint256 LoanDefaultPeriod;
+        uint256 GuarantorFee;
+        uint256 LendeeAgentFee;
+        uint256 LenderAgentFee;
+        uint256 Expires;
         bytes32 debtHash;
     }
     
@@ -39,12 +60,12 @@ contract Lend is Ownable {
         previousVersion = _previousVersion;
     }
     
-    function submitDebtRequest(address[5] _loanAddresses, uint256[9] _loanValues, bool[3] _loanOptions) public isDeprecated isLocked returns(bytes32){
+    function submitDebtRequest(address[5] _loanAddresses, uint256[9] _loanValues, bool[3] _loanOptions, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig) public isDeprecated isLocked returns(bytes32){
         //require(validateLoanRequestArguments());
         //require(tokenRegistry.validateToken(_tokenAddress));
         
         Debt memory debt = Debt({
-            maker: orderAddresses[0],
+
             debtHash: getDebtHash(orderAddresses, orderValues)
         });
         
@@ -54,10 +75,25 @@ contract Lend is Ownable {
             _loanAddresses[2],  //Lender
             _loanAddresses[3],  //Principal Token
             _loanAddresses[4],  //Payment Token
-            _loanValues[0],     //Principal Amount
+            _loanAddresses[5],  //Underwriter
+            _loanAddresses[6],  //Collateral Token
+            _loanAddresses[7],  //Guarantor
+            _loanAddresses[8],  //Agent
+            _loanValues[0],     //Principal
             _loanValues[1],     //Loan Start
-            _loanValues[2],     //Expires
-            _loanValues[3],     //Salt
+            _loanValues[2],     //Origination Fee
+            _loanValues[3],     //Loan Term
+            _loanValues[4],     //Periodic Interest Rate
+            _loanValues[5],     //Payment Amount
+            _loanValues[6],     //Payment Interval
+            _loanValues[7],     //Late Fee
+            _loanValues[8],     //Collateral Amount
+            _loanValues[9],     //Loan Default Period
+            _loanValues[10],    //Guarantor Fee
+            _loanValues[11],    //Lendee Agent Fee
+            _loanValues[12],    //Lender Agent Fee
+            _loanValues[13],    //Expires
+            _loanValues[14]     //Salt
         );
         
         //Loan Addresses
