@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.23;
 
 import "./ExternalStorage.sol";
 import "./TokenRegistry.sol";
@@ -20,72 +20,92 @@ contract Lend is Ownable {
     // Bug/Security Fixes - prior version locked
     string constant public VERSION = "0.1.0";
     address public nextVersion = address(0); //linked list
-    address public previousVersion; // linked list
+    address public prevVersion; // linked list
     
     bool public locked = false;
     bool public deprecated  = false;
     uint16 constant public EXTERNAL_QUERY_GAS_LIMIT = 4999;
     
+    event DeprecatedEvent(
+        address indexed version,
+        address indexed nextVersion,
+        address prevVersion
+    );
+    
+    event LockedEvent(
+        address indexed version,
+        address indexed nextVersion,
+        address prevVersion,
+        uint8 indexed reasonCode
+    );
+    
+    event DebtAgreementEvent(
+        address indexed lendee,
+        address indexed agent,
+        address indexed underwriter,
+        uint _value
+    );
+    
     struct DebtAgreement {
-        address Lendee;
-        address Lender;
-        address PrincipalToken;
-        address PaymentToken;
-        address Underwriter;
-        address CollateralToken;
-        address Guarantor;
-        address Agent;
-        uint256 Principal;
-        uint256 LoanStart;
-        uint256 OriginationFee;
-        uint256 LoanTerm;
-        uint256 PeriodicInterestRate;
-        uint256 PaymentAmount;
-        uint256 PaymentInterval;
-        uint256 LateFee;
-        uint256 CollateralAmount;
-        uint256 LoanDefaultPeriod;
-        uint256 GuarantorFee;
-        uint256 LendeeAgentFee;
-        uint256 LenderAgentFee;
-        uint256 Expires;
+        address lendee;
+        address lender;
+        address principalToken;
+        address paymentToken;
+        address underwriter;
+        address collateralToken;
+        address guarantor;
+        address agent;
+        uint256 principal;
+        uint256 loanStart;
+        uint256 originationFee;
+        uint256 loanTerm;
+        uint256 periodicInterestRate;
+        uint256 paymentAmount;
+        uint256 paymentInterval;
+        uint256 lateFee;
+        uint256 collateralAmount;
+        uint256 loanDefaultPeriod;
+        uint256 guarantorFee;
+        uint256 lendeeAgentFee;
+        uint256 lenderAgentFee;
+        uint256 expires;
         bytes32 debtHash;
     }
     
-    function Lend(address _previousVersion, address _tokenFeeContract, address _storage, address _tokenRegistry, address _paymentHandler) public {
+    constructor(address _prevVersion, address _tokenFeeContract, address _storage, address _tokenRegistry, address _paymentHandler) public {
         externalStorage = ExternalStorage(_storage);
         tokenRegistry = TokenRegistry(_tokenRegistry);
         tokenFeeContract = _tokenFeeContract;
         paymentHandler = PaymentHandler(_paymentHandler);
-        previousVersion = _previousVersion;
+        prevVersion = _prevVersion;
     }
     
     function submitDebtRequest(address[9] _loanAddresses, uint256[15] _loanValues, uint256 _amountToLend, bool[3] _loanOptions, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig) public isDeprecated isLocked returns(bytes32){
         
         //may only need this inside initialize function and for repayment, otherwise can probably get away with just the hash
         DebtAgreement memory debt = DebtAgreement({
-            Lendee: _loanAddresses[1],
-            Lender: _loanAddresses[2],
-            PrincipalToken: _loanAddresses[3],
-            PaymentToken: _loanAddresses[4],
-            Underwriter: _loanAddresses[5],
-            CollateralToken: _loanAddresses[6],
-            Guarantor: _loanAddresses[7],
-            Agent: _loanAddresses[8],
-            Principal: _loanValues[0],
-            LoanStart: _loanValues[1],
-            OriginationFee: _loanValues[2],
-            LoanTerm: _loanValues[3],
-            PeriodicInterestRate: _loanValues[4],
-            PaymentAmount: _loanValues[5],
-            PaymentInterval: _loanValues[6],
-            LateFee: _loanValues[7],
-            CollateralAmount: _loanValues[8],
-            LoanDefaultPeriod: _loanValues[9],
-            GuarantorFee: _loanValues[10],
-            LendeeAgentFee: _loanValues[11],
-            LenderAgentFee: _loanValues[12],
-            Expires: _loanValues[13],
+            lendee: _loanAddresses[1],
+            lender: _loanAddresses[2],
+            principalToken: _loanAddresses[3],
+            paymentToken: _loanAddresses[4],
+            underwriter: _loanAddresses[5],
+            collateralToken: _loanAddresses[6],
+            guarantor: _loanAddresses[7],
+            agent: _loanAddresses[8],
+            principal: _loanValues[0],
+            loanStart: _loanValues[1],
+            originationFee: _loanValues[2],
+            loanTerm: _loanValues[3],
+            periodicInterestRate: _loanValues[4],
+            paymentAmount: _loanValues[5],
+            paymentInterval: _loanValues[6],
+            lateFee: _loanValues[7],
+            collateralAmount: _loanValues[8],
+            loanDefaultPeriod: _loanValues[9],
+            guarantorFee: _loanValues[10],
+            lendeeAgentFee: _loanValues[11],
+            lenderAgentFee: _loanValues[12],
+            expires: _loanValues[13],
             debtHash: getDebtHash(_loanAddresses, _loanValues)
         });
         
@@ -105,33 +125,51 @@ contract Lend is Ownable {
         return debt.debtHash;
     }
     
+    function testHash1(address[2] _loanAddresses, uint256[2] _loanValues) public pure returns(bytes32){
+        return keccak256(_loanAddresses, _loanValues);
+    }
+    
+    function testHash2(address[2] _loanAddresses, uint256[2] _loanValues) public pure returns(bytes32){
+        return keccak256(_loanAddresses[0], _loanAddresses[1], _loanValues);
+    }
+    
+    function testHash3(address[2] _loanAddresses, uint256[2] _loanValues) public pure returns(bytes32){
+        return keccak256(_loanAddresses[0],_loanAddresses[1], _loanValues[0], _loanValues[1]);
+    }
+    
+    function testHash4(address[1] _loanAddresses, bytes32 _loanBytes, uint256[2] _loanValues) public pure returns(bytes32){
+        return keccak256(_loanAddresses[0], _loanBytes, _loanValues);
+    }
+    
     function getDebtHash(address[9] _loanAddresses, uint256[15] _loanValues) public pure returns(bytes32){
-        return keccak256(
-            _loanAddresses[0],  //Lend Contract Address
-            _loanAddresses[1],  //Lendee
-            _loanAddresses[2],  //Lender
-            _loanAddresses[3],  //Principal Token
-            _loanAddresses[4],  //Payment Token
-            _loanAddresses[5],  //Underwriter
-            _loanAddresses[6],  //Collateral Token
-            _loanAddresses[7],  //Guarantor
-            _loanAddresses[8],  //Agent
-            _loanValues[0],     //Principal
-            _loanValues[1],     //Loan Start
-            _loanValues[2],     //Origination Fee
-            _loanValues[3],     //Loan Term
-            _loanValues[4],     //Periodic Interest Rate
-            _loanValues[5],     //Payment Amount
-            _loanValues[6],     //Payment Interval
-            _loanValues[7],     //Late Fee
-            _loanValues[8],     //Collateral Amount
-            _loanValues[9],     //Loan Default Period
-            _loanValues[10],    //Guarantor Fee
-            _loanValues[11],    //Lendee Agent Fee
-            _loanValues[12],    //Lender Agent Fee
-            _loanValues[13],    //Expires
-            _loanValues[14]     //Salt
-        ); 
+        return keccak256(_loanAddresses, _loanValues);
+        
+        // return keccak256(
+        //     _loanAddresses[0],  //Lend Contract Address
+        //     _loanAddresses[1],  //Lendee
+        //     _loanAddresses[2],  //Lender
+        //     _loanAddresses[3],  //Principal Token
+        //     _loanAddresses[4],  //Payment Token
+        //     _loanAddresses[5],  //Underwriter
+        //     _loanAddresses[6],  //Collateral Token
+        //     _loanAddresses[7],  //Guarantor
+        //     _loanAddresses[8],  //Agent
+        //     _loanValues[0],     //Principal
+        //     _loanValues[1],     //Loan Start
+        //     _loanValues[2],     //Origination Fee
+        //     _loanValues[3],     //Loan Term
+        //     _loanValues[4],     //Periodic Interest Rate
+        //     _loanValues[5],     //Payment Amount
+        //     _loanValues[6],     //Payment Interval
+        //     _loanValues[7],     //Late Fee
+        //     _loanValues[8],     //Collateral Amount
+        //     _loanValues[9],     //Loan Default Period
+        //     _loanValues[10],    //Guarantor Fee
+        //     _loanValues[11],    //Lendee Agent Fee
+        //     _loanValues[12],    //Lender Agent Fee
+        //     _loanValues[13],    //Expires
+        //     _loanValues[14]     //Salt
+        // ); 
     }
     
     function submitCollateralizedDebtRequest() public returns(bool){
