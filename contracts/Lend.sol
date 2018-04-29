@@ -123,7 +123,7 @@ contract Lend is Ownable {
         require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0);
         require(validSignature(debt.lendee, debt.debtHash, _lendeeSig));
         
-        if (block.number > debt.expires) {
+        if (block.timestamp > debt.expires) {
             emit LogError(uint8(Errors.ORDER_EXPIRED), debt.debtHash);
             return 0;
         }
