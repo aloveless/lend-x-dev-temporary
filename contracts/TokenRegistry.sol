@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.23;
 
 import "./Ownable.sol";
 
@@ -7,7 +7,7 @@ contract TokenRegistry is Ownable {
     mapping (address => bool) public registered;
     address[] public addressList;
     
-    function TokenRegistry() public {
+    constructor() public {
         
     }
     
