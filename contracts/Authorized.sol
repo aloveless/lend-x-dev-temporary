@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.23;
 
 import "./Ownable.sol";
 
@@ -14,7 +14,7 @@ contract Authorized is Ownable {
     mapping (address => bool) public authorized;
     address[] public addressList;
 
-    function Authorized() public {
+    constructor() public {
         addressList.push(msg.sender);
         authorized[msg.sender] = true;
     }
