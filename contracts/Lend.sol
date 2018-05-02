@@ -158,7 +158,7 @@ contract Lend is Ownable {
     function getDebtHash(address[9] _loanAddresses, uint256[15] _loanValues) public pure returns(bytes32){
         return keccak256(_loanAddresses, _loanValues);
         
-        //     _loanAddresses[0],  //Lend Contract Address
+        //     _loanAddresses[0],  //Protocol Contract Address
         //     _loanAddresses[1],  //Lendee
         //     _loanAddresses[2],  //Lender
         //     _loanAddresses[3],  //Principal Token
@@ -167,7 +167,7 @@ contract Lend is Ownable {
         //     _loanAddresses[6],  //Collateral Token
         //     _loanAddresses[7],  //Guarantor
         //     _loanAddresses[8],  //Agent
-        //     _loanValues[0],     //Principal
+        //     _loanValues[0],     //Principal Amount
         //     _loanValues[1],     //Loan Start
         //     _loanValues[2],     //Origination Fee
         //     _loanValues[3],     //Loan Term
