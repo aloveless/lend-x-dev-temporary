@@ -14,7 +14,7 @@ contract Lend is Ownable {
     ExternalStorage public externalStorage;
     TokenRegistry public tokenRegistry;
     PaymentHandler public paymentHandler;
-    address public tokenFeeContract;
+    ERC20Interface public protocolToken;
     // Major Releases/Stable Version - prior version deprecated
     // Updates/New Functionality - prior version deprecated
     // Bug/Security Fixes - prior version locked
@@ -22,7 +22,7 @@ contract Lend is Ownable {
     
     bool public locked = false;
     bool public deprecated  = false;
-    uint16 constant public EXTERNAL_QUERY_GAS_LIMIT = 4999;
+    uint16 constant public GAS_LIMIT = 4999;
     
     enum Errors {
         ORDER_EXPIRED,                    // Order has already expired
@@ -57,7 +57,6 @@ contract Lend is Ownable {
         address lendee;
         address lender;
         address principalToken;
-        address paymentToken;
         address underwriter;
         address collateralToken;
         address guarantor;
@@ -79,25 +78,24 @@ contract Lend is Ownable {
         bytes32 debtHash;
     }
     
-    constructor(address _tokenFeeContract, address _storage, address _tokenRegistry, address _paymentHandler) public {
+    constructor(address _protocolToken, address _storage, address _tokenRegistry, address _paymentHandler) public {
         externalStorage = ExternalStorage(_storage);
         tokenRegistry = TokenRegistry(_tokenRegistry);
-        tokenFeeContract = _tokenFeeContract;
+        protocolToken = ERC20Interface(_protocolToken);
         paymentHandler = PaymentHandler(_paymentHandler);
     }
     
-    function submitDebtRequest(address[9] _loanAddresses, uint256[15] _loanValues, uint256 _amountToLend, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig, bool allowPartialLoan) public isDeprecated isLocked returns(uint256){
+    function submitDebtRequest(address[8] _loanAddresses, uint256[15] _loanValues, uint256 _amountToLend, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig, bool allowPartialLoan) public isDeprecated isLocked returns(uint256){
         
         //may only need this inside initialize function and for repayment, otherwise can probably get away with just the hash
         DebtAgreement memory debt = DebtAgreement({
             lendee: _loanAddresses[1],
             lender: _loanAddresses[2],
             principalToken: _loanAddresses[3],
-            paymentToken: _loanAddresses[4],
-            underwriter: _loanAddresses[5],
-            collateralToken: _loanAddresses[6],
-            guarantor: _loanAddresses[7],
-            agent: _loanAddresses[8],
+            underwriter: _loanAddresses[4],
+            collateralToken: _loanAddresses[5],
+            guarantor: _loanAddresses[6],
+            agent: _loanAddresses[7],
             principal: _loanValues[0],
             loanStart: _loanValues[1],
             originationFee: _loanValues[2],
@@ -123,6 +121,10 @@ contract Lend is Ownable {
         require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0);
         require(validSignature(debt.lendee, debt.debtHash, _lendeeSig));
         
+        if(debt.collateralToken != address(0) || debt.collateralAmount > 0){
+            require(debt.guarantor != address(0));
+        }
+        
         if (block.timestamp > debt.expires) {
             emit LogError(uint8(Errors.ORDER_EXPIRED), debt.debtHash);
             return 0;
@@ -137,10 +139,21 @@ contract Lend is Ownable {
             return 0;
         }
         
-        if (!validBalancesAndAllowances(_loanAddresses, _loanValues, lenderLoanAmount)) {
+        if (validRounding(lenderLoanAmount, debt.principal, debt.lenderAgentFee)) {
+            emit LogError(uint8(Errors.ROUNDING_ERROR_TOO_LARGE), debt.debtHash);
+            return 0;
+        }
+        
+        if (!validBalancesAndAllowances(debt, lenderLoanAmount)) {
             emit LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), debt.debtHash);
             return 0;
         }
+        
+        
+        //uint256 originationFee = (debt.underwriter != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee) : uint256(0));
+        //uint256 guarantorFee = (debt.guarantor != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee) : uint256(0));
+        //uint256 lendeeAgentFee;
+        //uint256 lenderAgentFee;
         
         //New Principal
         externalStorage.setUIntValue(debt.debtHash, keccak256('Principal'), currentPrincipal.add(lenderLoanAmount));
@@ -155,18 +168,17 @@ contract Lend is Ownable {
         return lenderLoanAmount;
     }
     
-    function getDebtHash(address[9] _loanAddresses, uint256[15] _loanValues) public pure returns(bytes32){
+    function getDebtHash(address[8] _loanAddresses, uint256[15] _loanValues) public pure returns(bytes32){
         return keccak256(_loanAddresses, _loanValues);
         
         //     _loanAddresses[0],  //Protocol Contract Address
         //     _loanAddresses[1],  //Lendee
         //     _loanAddresses[2],  //Lender
         //     _loanAddresses[3],  //Principal Token
-        //     _loanAddresses[4],  //Payment Token
-        //     _loanAddresses[5],  //Underwriter
-        //     _loanAddresses[6],  //Collateral Token
-        //     _loanAddresses[7],  //Guarantor
-        //     _loanAddresses[8],  //Agent
+        //     _loanAddresses[4],  //Underwriter
+        //     _loanAddresses[5],  //Collateral Token
+        //     _loanAddresses[6],  //Guarantor
+        //     _loanAddresses[7],  //Agent
         //     _loanValues[0],     //Principal Amount
         //     _loanValues[1],     //Loan Start
         //     _loanValues[2],     //Origination Fee
@@ -194,9 +206,46 @@ contract Lend is Ownable {
         return _requestID;
     }
     
-    function validBalancesAndAllowances(address[9] _loanAddresses, uint256[15] _loanValues, uint256 _lenderLoanAmount) public view returns(bool){
+    function validBalancesAndAllowances(DebtAgreement debt, uint256 lenderLoanAmount) internal view returns(bool){
+        uint256 lendeeFees;
+        uint256 lenderFees;
         
+        lendeeFees = lendeeFees.add((debt.underwriter != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee) : uint256(0)));
+        lendeeFees = lendeeFees.add((debt.guarantor != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee) : uint256(0)));
+        lendeeFees = lendeeFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lendeeAgentFee) : uint256(0)));
+        lenderFees = lenderFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lenderAgentFee) : uint256(0)));        
+        
+        //if(debt.guarantor != address(0) && debt.collateralToken != address(0) && )
+        
+        if(debt.principalToken == address(protocolToken)){
+            return getBalance(debt.principalToken, msg.sender) < lenderFees.add(lenderLoanAmount) 
+            && getBalance(debt.principalToken, debt.lendee) < lendeeFees 
+            && getAllowance(debt.principalToken, msg.sender) < lenderFees.add(lenderLoanAmount) 
+            && getAllowance(debt.principalToken, debt.lendee) < lendeeFees
+            && (debt.collateralToken == address(0) || true);
+        }
+        if(lendeeFees != uint256(0)){
+
+        }
+
     }
+    
+    function getAllowance(address _token, address _owner) public view returns (uint256){
+        return ERC20Interface(_token).allowance.gas(GAS_LIMIT)(_owner, address(paymentHandler));
+    }
+    
+    function getBalance(address _token, address _owner) public view returns(uint256){
+        return ERC20Interface(_token).balanceOf.gas(GAS_LIMIT)(_owner);
+    }
+    
+    function validSignature(address _signer, bytes32 _debtHash, bytes _sig) public pure returns(bool){
+        return _signer == ECRecovery.recover(_debtHash, _sig);
+    }
+    
+    function getPartialAmount(uint256 numerator, uint256 denominator, uint256 target) public pure returns(uint256){
+        return SafeMath.div(SafeMath.mul(numerator, target), denominator);
+    }
+    
     
     function forgiveDebt(uint256 requestID){
         //externalStorage.LenderBooleanStorage(requestID, msg.sender, keccak256("ForgiveDebt"), true);
@@ -223,17 +272,13 @@ contract Lend is Ownable {
     function keyExists(bytes32 _requestID) public view returns(bool){
         return externalStorage.getBooleanValue(_requestID, keccak256('Exists'));
     }
-  
-    function getAllowance(address _token, address _owner, uint256 _gasLimit) public view returns (uint256){
-        return ERC20Interface(_token).allowance.gas(_gasLimit)(_owner, paymentHandler);
-    }
     
-    function getBalance(address _token, address _owner, uint256 _gasLimit) public view returns(uint256){
-        return ERC20Interface(_token).balanceOf.gas(_gasLimit)(_owner);
-    }
-    
-    function validSignature(address _signer, bytes32 _debtHash, bytes _sig) public pure returns(bool){
-        return _signer == ECRecovery.recover(_debtHash, _sig);
+    function validRounding(uint numerator, uint denominator, uint target) public pure returns(bool){
+        uint remainder = mulmod(target, numerator, denominator);
+        if (remainder == 0) { return false; }
+
+        uint errPercentageTimes1000000 = SafeMath.div(SafeMath.mul(remainder, 1000000), SafeMath.mul(numerator, target));
+        return errPercentageTimes1000000 > 1000;
     }
     
     /**
