@@ -121,11 +121,11 @@ contract Lend is Ownable {
         require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0);
         require(validSignature(debt.lendee, debt.debtHash, _lendeeSig));
         
-        if(debt.collateralToken != address(0) || debt.collateralAmount > 0){
-            require(debt.guarantor != address(0));
+        if(debt.collateralAmount > 0){
+            require(debt.guarantor != address(0) && debt.collateralToken != address(0));
         }
         
-        if (block.timestamp > debt.expires) {
+        if(block.timestamp > debt.expires){
             emit LogError(uint8(Errors.ORDER_EXPIRED), debt.debtHash);
             return 0;
         }
@@ -134,17 +134,17 @@ contract Lend is Ownable {
         uint256 principalAmountRemaining = debt.principal.sub(currentPrincipal);
         uint256 lenderLoanAmount = (_amountToLend < principalAmountRemaining ? _amountToLend : principalAmountRemaining);
         
-        if (lenderLoanAmount == 0) {
+        if(lenderLoanAmount == 0){
             emit LogError(uint8(Errors.LOAN_FILLED), debt.debtHash);
             return 0;
         }
         
-        if (validRounding(lenderLoanAmount, debt.principal, debt.lenderAgentFee)) {
+        if(validRounding(lenderLoanAmount, debt.principal, debt.lenderAgentFee)){
             emit LogError(uint8(Errors.ROUNDING_ERROR_TOO_LARGE), debt.debtHash);
             return 0;
         }
         
-        if (!validBalancesAndAllowances(debt, lenderLoanAmount)) {
+        if (!validBalancesAndAllowances(debt, lenderLoanAmount)){
             emit LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), debt.debtHash);
             return 0;
         }
@@ -222,7 +222,7 @@ contract Lend is Ownable {
             && getBalance(debt.principalToken, debt.lendee) < lendeeFees 
             && getAllowance(debt.principalToken, msg.sender) < lenderFees.add(lenderLoanAmount) 
             && getAllowance(debt.principalToken, debt.lendee) < lendeeFees
-            && (debt.collateralToken == address(0) || true);
+            && (debt.collateralAmount == uint256(0) || getBalance(debt.collateralToken, debt.guarantor) > getPartialAmount(lenderLoanAmount, debt.principal, debt.collateralAmount));
         }
         if(lendeeFees != uint256(0)){
 
