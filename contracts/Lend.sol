@@ -214,15 +214,15 @@ contract Lend is Ownable {
         lendeeFees = lendeeFees.add((debt.guarantor != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee) : uint256(0)));
         lendeeFees = lendeeFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lendeeAgentFee) : uint256(0)));
         lenderFees = lenderFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lenderAgentFee) : uint256(0)));        
-        
-        //if(debt.guarantor != address(0) && debt.collateralToken != address(0) && )
+        uint256 guaranteedAmount = (debt.collateralAmount > 0 ? getPartialAmount(lenderLoanAmount, debt.principal, debt.collateralAmount) : uint256(0));
         
         if(debt.principalToken == address(protocolToken)){
             return getBalance(debt.principalToken, msg.sender) < lenderFees.add(lenderLoanAmount) 
             && getBalance(debt.principalToken, debt.lendee) < lendeeFees 
             && getAllowance(debt.principalToken, msg.sender) < lenderFees.add(lenderLoanAmount) 
             && getAllowance(debt.principalToken, debt.lendee) < lendeeFees
-            && (debt.collateralAmount == uint256(0) || getBalance(debt.collateralToken, debt.guarantor) > getPartialAmount(lenderLoanAmount, debt.principal, debt.collateralAmount));
+            && (guaranteedAmount == uint256(0) || getBalance(debt.collateralToken, debt.guarantor) > guaranteedAmount)
+            && (guaranteedAmount == uint256(0) || getAllowance(debt.collateralToken, debt.guarantor) > guaranteedAmount);
         }
         if(lendeeFees != uint256(0)){
 
