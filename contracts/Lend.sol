@@ -207,27 +207,30 @@ contract Lend is Ownable {
     }
     
     function validBalancesAndAllowances(DebtAgreement debt, uint256 lenderLoanAmount) internal view returns(bool){
-        uint256 lendeeFees;
-        uint256 lenderFees;
         
-        lendeeFees = lendeeFees.add((debt.underwriter != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee) : uint256(0)));
+        uint256 lendeeFees = lendeeFees.add((debt.underwriter != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee) : uint256(0)));
         lendeeFees = lendeeFees.add((debt.guarantor != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee) : uint256(0)));
         lendeeFees = lendeeFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lendeeAgentFee) : uint256(0)));
-        lenderFees = lenderFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lenderAgentFee) : uint256(0)));        
+        uint256 lenderFees = lenderFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lenderAgentFee) : uint256(0)));        
         uint256 guaranteedAmount = (debt.collateralAmount > 0 ? getPartialAmount(lenderLoanAmount, debt.principal, debt.collateralAmount) : uint256(0));
         
         if(debt.principalToken == address(protocolToken)){
-            return getBalance(debt.principalToken, msg.sender) < lenderFees.add(lenderLoanAmount) 
-            && getBalance(debt.principalToken, debt.lendee) < lendeeFees 
-            && getAllowance(debt.principalToken, msg.sender) < lenderFees.add(lenderLoanAmount) 
-            && getAllowance(debt.principalToken, debt.lendee) < lendeeFees
-            && (guaranteedAmount == uint256(0) || getBalance(debt.collateralToken, debt.guarantor) > guaranteedAmount)
-            && (guaranteedAmount == uint256(0) || getAllowance(debt.collateralToken, debt.guarantor) > guaranteedAmount);
+            return getBalance(debt.principalToken, msg.sender) >= lenderFees.add(lenderLoanAmount) 
+                && getBalance(debt.principalToken, debt.lendee) >= lendeeFees 
+                && getAllowance(debt.principalToken, msg.sender) >= lenderFees.add(lenderLoanAmount) 
+                && getAllowance(debt.principalToken, debt.lendee) >= lendeeFees
+                && (guaranteedAmount == uint256(0) || getBalance(debt.collateralToken, debt.guarantor) >= guaranteedAmount)
+                && (guaranteedAmount == uint256(0) || getAllowance(debt.collateralToken, debt.guarantor) >= guaranteedAmount);
         }
-        if(lendeeFees != uint256(0)){
-
-        }
-
+        
+        return getBalance(debt.principalToken, msg.sender) >= lenderLoanAmount 
+            && getBalance(protocolToken, msg.sender) >= lenderFees 
+            && getBalance(protocolToken, debt.lendee) >= lendeeFees 
+            && getAllowance(debt.principalToken, msg.sender) >= lenderLoanAmount 
+            && getAllowance(protocolToken, msg.sender) >= lenderFees 
+            && getAllowance(protocolToken, debt.lendee) >= lendeeFees
+            && (guaranteedAmount == uint256(0) || getBalance(debt.collateralToken, debt.guarantor) >= guaranteedAmount)
+            && (guaranteedAmount == uint256(0) || getAllowance(debt.collateralToken, debt.guarantor) >= guaranteedAmount);
     }
     
     function getAllowance(address _token, address _owner) public view returns (uint256){
