@@ -1,11 +1,9 @@
 pragma solidity ^0.4.23;
 
-import "./SafeMath.sol";
 import "./Ownable.sol";
 import "./Authorized.sol";
 
 contract ExternalStorage is Ownable, Authorized {
-    using SafeMath for uint256;
     
     constructor() public {
         
