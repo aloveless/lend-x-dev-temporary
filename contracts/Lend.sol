@@ -144,24 +144,43 @@ contract Lend is Ownable {
             return 0;
         }
         
-        if (!validBalancesAndAllowances(debt, lenderLoanAmount)){
+        if(!validBalancesAndAllowances(debt, lenderLoanAmount)){
             emit LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), debt.debtHash);
             return 0;
         }
         
         
         //uint256 originationFee = (debt.underwriter != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee) : uint256(0));
-        //uint256 guarantorFee = (debt.guarantor != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee) : uint256(0));
         //uint256 lendeeAgentFee;
         //uint256 lenderAgentFee;
         
-        //New Principal
+        //State Changes
         externalStorage.setUIntValue(debt.debtHash, keccak256('Principal'), currentPrincipal.add(lenderLoanAmount));
-        //externalStorage.setUIntValue(debt.debtHash, keccak256('Outstanding'), _amountToLend);
-
-        externalStorage.setLenderUIntValue(debt.debtHash, msg.sender, keccak256("LenderPrincipal"), lenderLoanAmount);
-
-        externalStorage.setBooleanValue(debt.debtHash, keccak256("Initialized"), true);
+        externalStorage.setUIntValue(debt.debtHash, keccak256('Outstanding'), currentPrincipal.add(lenderLoanAmount));
+        externalStorage.setLenderUIntValue(debt.debtHash, msg.sender, keccak256("LenderPrincipal"), lenderLoanAmount.add(externalStorage.getLenderUIntValue(debt.debtHash, msg.sender, keccak256("LenderPrincipal"))));
+        //externalStorage.setBooleanValue(debt.debtHash, keccak256("Initialized"), true);
+        
+        //Transfer Principal Tokens from Lender to Lendee
+        require(paymentHandler.transferFrom(debt.principalToken, msg.sender, debt.lendee, lenderLoanAmount));
+        
+        //Transfer Origination & Agent Fees from Lendee to Underwriter, Lender to Agent
+        if(debt.underwriter == debt.agent){
+            
+        } else {
+            //Transfer Agent Fees from Lendee to Agent
+        }
+        
+        if(debt.guarantor != address(0)){
+            //Transfer Guarantor Fees from Lendee to Guarantor
+            if(debt.guarantorFee > 0){
+                require(paymentHandler.transferFrom(protocolToken, debt.lendee, debt.guarantor, getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee)));
+            } 
+            
+            //Transfer Collateral from Guarantor to PaymentHandler Contract
+            if(debt.collateralToken != address(0) && debt.collateralAmount > 0){
+                require(paymentHandler.transferFrom(debt.collateralToken, debt.guarantor, paymentHandler, getPartialAmount(lenderLoanAmount, debt.principal, debt.collateralAmount)));
+            }
+        }
         
         //emit DebtAgreementEvent( debt.debtHash);
         
@@ -207,7 +226,6 @@ contract Lend is Ownable {
     }
     
     function validBalancesAndAllowances(DebtAgreement debt, uint256 lenderLoanAmount) internal view returns(bool){
-        
         uint256 lendeeFees = lendeeFees.add((debt.underwriter != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee) : uint256(0)));
         lendeeFees = lendeeFees.add((debt.guarantor != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee) : uint256(0)));
         lendeeFees = lendeeFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lendeeAgentFee) : uint256(0)));
@@ -233,6 +251,11 @@ contract Lend is Ownable {
             && (guaranteedAmount == uint256(0) || getAllowance(debt.collateralToken, debt.guarantor) >= guaranteedAmount);
     }
     
+    //Don't think we need this, just call payment handler directly from inline code
+    // function transferFrom(address _token, address _from, address _to, uint _value) internal returns(bool){
+    //     return paymentHandler.transferFrom(_token, _from, _to, _value);
+    // }
+    
     function getAllowance(address _token, address _owner) public view returns (uint256){
         return ERC20Interface(_token).allowance.gas(GAS_LIMIT)(_owner, address(paymentHandler));
     }
@@ -256,6 +279,10 @@ contract Lend is Ownable {
     
     function getPrincipal(bytes32 debtHash) public returns(uint256){
         return externalStorage.getUIntValue(debtHash, keccak256('Principal'));
+    }
+    
+    function getOutstanding(bytes32 debtHash) public returns(uint256){
+        return externalStorage.getUIntValue(debtHash, keccak256('Outstanding'));
     }
     
     function getInterestAccrued(address _requestor) public view returns(uint256){
