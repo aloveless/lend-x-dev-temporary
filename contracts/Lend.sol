@@ -87,7 +87,6 @@ contract Lend is Ownable {
     
     function submitDebtRequest(address[8] _loanAddresses, uint256[15] _loanValues, uint256 _amountToLend, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig, bool allowPartialLoan) public isDeprecated isLocked returns(uint256){
         
-        //may only need this inside initialize function and for repayment, otherwise can probably get away with just the hash
         DebtAgreement memory debt = DebtAgreement({
             lendee: _loanAddresses[1],
             lender: _loanAddresses[2],
@@ -121,8 +120,17 @@ contract Lend is Ownable {
         require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0);
         require(validSignature(debt.lendee, debt.debtHash, _lendeeSig));
         
-        if(debt.collateralAmount > 0){
-            require(debt.guarantor != address(0) && debt.collateralToken != address(0));
+        if(debt.originationFee > 0){
+            require(debt.underwriter != address(0) && debt.underwriter != debt.lendee);
+        }
+        
+        if(debt.collateralAmount > 0){ 
+            require(debt.guarantor != address(0) && debt.collateralToken != address(0)); 
+            
+        }
+        
+        if(debt.lendeeAgentFee > 0 || debt.lenderAgentFee > 0){ 
+            require(debt.agent != address(0)); 
         }
         
         if(block.timestamp > debt.expires){
@@ -163,11 +171,28 @@ contract Lend is Ownable {
         //Transfer Principal Tokens from Lender to Lendee
         require(paymentHandler.transferFrom(debt.principalToken, msg.sender, debt.lendee, lenderLoanAmount));
         
-        //Transfer Origination & Agent Fees from Lendee to Underwriter, Lender to Agent
         if(debt.underwriter == debt.agent){
-            
+            //Transfer Origination Fee & Lendee Agent Fee from Lendee to Underwriter
+            if(debt.originationFee > 0 || debt.lendeeAgentFee > 0){
+                require(paymentHandler.transferFrom(protocolToken, debt.lendee, debt.underwriter, getPartialAmount(lenderLoanAmount, debt.principal, SafeMath.add(debt.originationFee, debt.lendeeAgentFee))));
+            }
+            //Transfer Lender Agent Fee from Lender to Agent
+            if(debt.lenderAgentFee > 0){
+                require(paymentHandler.transferFrom(protocolToken, msg.sender, debt.agent, getPartialAmount(lenderLoanAmount, debt.principal, debt.lenderAgentFee)));
+            }
         } else {
-            //Transfer Agent Fees from Lendee to Agent
+            //Transfer Origination Fee from Lendee to Underwriter
+            if(debt.originationFee > 0){
+                require(paymentHandler.transferFrom(protocolToken, debt.lendee, debt.underwriter, getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee)));
+            }
+            //Transfer Lendee Agent Fee from Lendee to Agent
+            if(debt.lendeeAgentFee > 0){
+                require(paymentHandler.transferFrom(protocolToken, debt.lendee, debt.agent, getPartialAmount(lenderLoanAmount, debt.principal, debt.lendeeAgentFee)));
+            }
+            //Transfer Lender Agent Fee from Lender to Agent
+            if(debt.lenderAgentFee > 0){
+                require(paymentHandler.transferFrom(protocolToken, msg.sender, debt.agent, getPartialAmount(lenderLoanAmount, debt.principal, debt.lenderAgentFee)));
+            }
         }
         
         if(debt.guarantor != address(0)){
@@ -175,7 +200,6 @@ contract Lend is Ownable {
             if(debt.guarantorFee > 0){
                 require(paymentHandler.transferFrom(protocolToken, debt.lendee, debt.guarantor, getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee)));
             } 
-            
             //Transfer Collateral from Guarantor to PaymentHandler Contract
             if(debt.collateralToken != address(0) && debt.collateralAmount > 0){
                 require(paymentHandler.transferFrom(debt.collateralToken, debt.guarantor, paymentHandler, getPartialAmount(lenderLoanAmount, debt.principal, debt.collateralAmount)));
