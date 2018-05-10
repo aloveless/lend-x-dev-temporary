@@ -158,11 +158,6 @@ contract Lend is Ownable {
             return 0;
         }
         
-        
-        //uint256 originationFee = (debt.underwriter != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee) : uint256(0));
-        //uint256 lendeeAgentFee;
-        //uint256 lenderAgentFee;
-        
         //State Changes
         externalStorage.setUIntValue(debt.debtHash, keccak256('Principal'), currentPrincipal.add(lenderLoanAmount));
         externalStorage.setUIntValue(debt.debtHash, keccak256('Outstanding'), currentPrincipal.add(lenderLoanAmount));
