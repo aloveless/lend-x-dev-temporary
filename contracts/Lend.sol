@@ -182,14 +182,7 @@ contract Lend is Ownable {
         }
         
         //State Changes
-        //principal & outstanding will eventually diverage but principal needed for simple interst calculation
         externalStorage.setUIntValue(debt.debtHash, keccak256('Principal'), currentPrincipal.add(lenderLoanAmount));
-        
-        //externalStorage.setUIntValue(debt.debtHash, keccak256('Outstanding'), currentPrincipal.add(lenderLoanAmount));
-        
-        //maybe ditch Outstanding and just track AccruedInterest separately
-        // Outstanding = (Principal + AccruedInterest) - AmountRepaid
-        //externalStorage.setUIntValue(debt.debtHash, keccak256('AccruedInterest'), currentPrincipal.add(lenderLoanAmount));
         externalStorage.setLenderUIntValue(debt.debtHash, msg.sender, keccak256("LenderPrincipal"), lenderLoanAmount.add(externalStorage.getLenderUIntValue(debt.debtHash, msg.sender, keccak256("LenderPrincipal"))));
         //externalStorage.setBooleanValue(debt.debtHash, keccak256("Initialized"), true);
         
@@ -322,15 +315,17 @@ contract Lend is Ownable {
     }
     
     
-    function forgiveDebt(uint256 requestID){
-        //externalStorage.LenderBooleanStorage(requestID, msg.sender, keccak256("ForgiveDebt"), true);
+    function forgiveDebt(bytes32 debtHash, uint256 amountToForgive) public returns(bool){
+        // also need to reduce principal by Lender amount not withdrawn and possibly some interest accrued?
+        externalStorage.setLenderBooleanValue(debtHash, msg.sender, keccak256("ForgiveDebt"), true);
     }
     
-    function getPrincipal(bytes32 debtHash) public returns(uint256){
+    function getPrincipal(bytes32 debtHash) public view returns(uint256){
         return externalStorage.getUIntValue(debtHash, keccak256('Principal'));
     }
     
-    function getOutstandingDebt(bytes32 debtHash) public returns(uint256){
+    function getOutstandingDebt(bytes32 debtHash) public view returns(uint256){
+        // Outstanding = (Principal + AccruedInterest) - AmountRepaid
         return externalStorage.getUIntValue(debtHash, keccak256('Outstanding'));
     }
     
