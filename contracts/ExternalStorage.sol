@@ -1,9 +1,8 @@
 pragma solidity ^0.4.23;
 
-import "./Ownable.sol";
 import "./Authorized.sol";
 
-contract ExternalStorage is Ownable, Authorized {
+contract ExternalStorage is Authorized {
     
     constructor() public {
         
@@ -51,7 +50,15 @@ contract ExternalStorage is Ownable, Authorized {
     }
     
     function getLenderUIntValue(bytes32 _requestID, address _address, bytes32 _var) external view returns (uint256){
-        LenderUIntStorage[_requestID][_address][_var];
+        return LenderUIntStorage[_requestID][_address][_var];
+    }
+    
+    function setLenderBooleanValue(bytes32 _requestID, address _address, bytes32 _var, bool _value) external {
+        LenderBooleanStorage[_requestID][_address][_var] = _value;
+    }
+    
+    function getLenderBooleanValue(bytes32 _requestID, address _address, bytes32 _var) external view returns (bool){
+        return LenderBooleanStorage[_requestID][_address][_var];
     }
 
 }
