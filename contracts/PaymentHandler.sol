@@ -1,7 +1,6 @@
 pragma solidity ^0.4.23;
 
 import "./SafeMath.sol";
-import "./Ownable.sol";
 import "./Authorized.sol";
 import "./ERC20Interface.sol";
 
@@ -10,7 +9,7 @@ import "./ERC20Interface.sol";
  * @dev Base contract that supports multiple payees claiming funds sent to this contract
  * according to the proportion they own.
  */
-contract PaymentHandler is Ownable, Authorized {
+contract PaymentHandler is Authorized {
   using SafeMath for uint256;
 
   uint256 public totalShares = 0;
@@ -30,6 +29,10 @@ contract PaymentHandler is Ownable, Authorized {
       addPayee(_payees[i], _shares[i]);
     }
   }
+  
+    function transferFrom(address _token, address _from, address _to, uint _value) public returns(bool){
+        return ERC20Interface(_token).transferFrom(_from, _to, _value);
+    }
 
   /**
    * @dev Claim your share of the balance.
