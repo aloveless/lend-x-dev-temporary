@@ -126,7 +126,6 @@ contract Lend is Ownable {
         require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0);
         require(validSignature(debt.lendee, debt.debtHash, _lendeeSig));
         
-
         if(debt.underwriter != address(0)){
             require(validSignature(debt.underwriter, debt.debtHash, _underwriterSig));
         }
@@ -151,6 +150,12 @@ contract Lend is Ownable {
             emit LogError(uint8(Errors.AGREEMENT_EXPIRED), debt.debtHash);
             return 0;
         }
+        
+        //validations needed if lender object is passed
+        // Needs some consideration based on lendee & lender options
+        //// should loan amount be less than or equal to this amount, Lendee options parameter is needed to define this also
+        // update struct and array to include lender object values
+        // if(debt.lender == msg.sender && debt.lenderAmount > 0){ require(_amountToLend == debt.lenderAmount); }
         
         uint256 currentPrincipal = getPrincipal(debt.debtHash);
         uint256 principalAmountRemaining = debt.principal.sub(currentPrincipal);
