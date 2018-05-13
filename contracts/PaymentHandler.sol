@@ -22,12 +22,8 @@ contract PaymentHandler is Authorized {
   /**
    * @dev Constructor
    */
-  constructor(address[] _payees, uint256[] _shares) public payable {
-    require(_payees.length == _shares.length);
+  constructor() public {
 
-    for (uint256 i = 0; i < _payees.length; i++) {
-      addPayee(_payees[i], _shares[i]);
-    }
   }
   
     function transferFrom(address _token, address _from, address _to, uint _value) public returns(bool){
