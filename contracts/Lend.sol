@@ -24,18 +24,18 @@ contract Lend is Ownable {
     bool public deprecated  = false;
     uint16 constant public GAS_LIMIT = 4999;
     
+    //https://github.com/ethereum/solidity/issues/1686
+    //Return Transaction Errors in Require/Revert not yet supported 
     enum Errors {
-        ORDER_EXPIRED,                    // Order has already expired
-        LOAN_FILLED,                      // Order has already been fully filled
-        ROUNDING_ERROR_TOO_LARGE,         // Rounding error too large
-        INSUFFICIENT_BALANCE_OR_ALLOWANCE // Insufficient balance or allowance for token transfer
+        AGREEMENT_EXPIRED,                      // Order has already expired
+        LOAN_FILLED,                            // Order has already been fully filled
+        ROUNDING_ERROR_TOO_LARGE,               // Rounding error too large
+        INSUFFICIENT_BALANCE_OR_ALLOWANCE,      // Insufficient balance or allowance for token transfer
+        lENDER_PARTIAL_LOAN_NOT_ALLOWABLE       // Lender does not allow partial fill and fillable amount is less than lender loan amount
     }
     
     event LogError(uint8 indexed errorCode, bytes32 indexed debtHash);
-    
-    event DeprecatedEvent(
-        address indexed version
-    );
+    event DeprecatedEvent(address indexed version);
     
     event LockedEvent(
         address indexed version,
@@ -84,8 +84,13 @@ contract Lend is Ownable {
         protocolToken = ERC20Interface(_protocolToken);
         paymentHandler = PaymentHandler(_paymentHandler);
     }
-    
-    function submitDebtRequest(address[8] _loanAddresses, uint256[15] _loanValues, uint256 _amountToLend, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig, bool allowPartialLoan) public isDeprecated isLocked returns(uint256){
+
+    /** 
+    * @dev Process an offchain Debt Agreement
+    * @param _lenderLoanOptions array of Lender conditions that must be met before tokens are transferred. [0] = allowPartialLoan
+    * @return Total amount of consideration transfered from Lender to Lendee.
+    */
+    function submitDebtAgreement(address[8] _loanAddresses, uint256[15] _loanValues, uint256 _amountToLend, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig, bool[1] _lenderLoanOptions) public isDeprecated isLocked returns(uint256){
         
         DebtAgreement memory debt = DebtAgreement({
             lendee: _loanAddresses[1],
@@ -121,27 +126,40 @@ contract Lend is Ownable {
         require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0);
         require(validSignature(debt.lendee, debt.debtHash, _lendeeSig));
         
+
+        if(debt.underwriter != address(0)){
+            require(validSignature(debt.underwriter, debt.debtHash, _underwriterSig));
+        }
+        
+        if(debt.guarantor != address(0)){
+            require(validSignature(debt.guarantor, debt.debtHash, _guarantorSig));
+        }
+        
         if(debt.originationFee > 0){
             require(debt.underwriter != address(0) && debt.underwriter != debt.lendee);
         }
         
         if(debt.collateralAmount > 0){ 
-            require(debt.guarantor != address(0) && debt.collateralToken != address(0)); 
-            
+            require(debt.guarantor != address(0) && debt.collateralToken != address(0));
         }
         
-        if(debt.lendeeAgentFee > 0 || debt.lenderAgentFee > 0){ 
+        if(debt.lendeeAgentFee > 0 || debt.lenderAgentFee > 0){
             require(debt.agent != address(0)); 
         }
         
         if(block.timestamp > debt.expires){
-            emit LogError(uint8(Errors.ORDER_EXPIRED), debt.debtHash);
+            emit LogError(uint8(Errors.AGREEMENT_EXPIRED), debt.debtHash);
             return 0;
         }
         
         uint256 currentPrincipal = getPrincipal(debt.debtHash);
         uint256 principalAmountRemaining = debt.principal.sub(currentPrincipal);
         uint256 lenderLoanAmount = (_amountToLend < principalAmountRemaining ? _amountToLend : principalAmountRemaining);
+        
+        if(_lenderLoanOptions[0] == false && lenderLoanAmount < _amountToLend){
+            emit LogError(uint8(Errors.lENDER_PARTIAL_LOAN_NOT_ALLOWABLE), debt.debtHash);
+            return 0;
+        }
         
         if(lenderLoanAmount == 0){
             emit LogError(uint8(Errors.LOAN_FILLED), debt.debtHash);
@@ -159,8 +177,14 @@ contract Lend is Ownable {
         }
         
         //State Changes
+        //principal & outstanding will eventually diverage but principal needed for simple interst calculation
         externalStorage.setUIntValue(debt.debtHash, keccak256('Principal'), currentPrincipal.add(lenderLoanAmount));
-        externalStorage.setUIntValue(debt.debtHash, keccak256('Outstanding'), currentPrincipal.add(lenderLoanAmount));
+        
+        //externalStorage.setUIntValue(debt.debtHash, keccak256('Outstanding'), currentPrincipal.add(lenderLoanAmount));
+        
+        //maybe ditch Outstanding and just track AccruedInterest separately
+        // Outstanding = (Principal + AccruedInterest) - AmountRepaid
+        //externalStorage.setUIntValue(debt.debtHash, keccak256('AccruedInterest'), currentPrincipal.add(lenderLoanAmount));
         externalStorage.setLenderUIntValue(debt.debtHash, msg.sender, keccak256("LenderPrincipal"), lenderLoanAmount.add(externalStorage.getLenderUIntValue(debt.debtHash, msg.sender, keccak256("LenderPrincipal"))));
         //externalStorage.setBooleanValue(debt.debtHash, keccak256("Initialized"), true);
         
@@ -197,7 +221,7 @@ contract Lend is Ownable {
                 require(paymentHandler.transferFrom(protocolToken, debt.lendee, debt.guarantor, getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee)));
             } 
             //Transfer Collateral from Guarantor to PaymentHandler Contract
-            if(debt.collateralToken != address(0) && debt.collateralAmount > 0){
+            if(debt.collateralAmount > 0){
                 require(paymentHandler.transferFrom(debt.collateralToken, debt.guarantor, paymentHandler, getPartialAmount(lenderLoanAmount, debt.principal, debt.collateralAmount)));
             }
         }
@@ -301,7 +325,7 @@ contract Lend is Ownable {
         return externalStorage.getUIntValue(debtHash, keccak256('Principal'));
     }
     
-    function getOutstanding(bytes32 debtHash) public returns(uint256){
+    function getOutstandingDebt(bytes32 debtHash) public returns(uint256){
         return externalStorage.getUIntValue(debtHash, keccak256('Outstanding'));
     }
     
