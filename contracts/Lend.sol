@@ -78,7 +78,7 @@ contract Lend is Ownable {
         bytes32 debtHash;
     }
     
-    constructor(address _protocolToken, address _storage, address _tokenRegistry, address _paymentHandler) public {
+    constructor(address _protocolToken, address _storage, address _paymentHandler, address _tokenRegistry) public {
         externalStorage = ExternalStorage(_storage);
         tokenRegistry = TokenRegistry(_tokenRegistry);
         protocolToken = ERC20Interface(_protocolToken);
