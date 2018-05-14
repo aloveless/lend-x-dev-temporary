@@ -265,7 +265,7 @@
 
         //Contract Objects
         protocolToken = erc20Contract.at('0xf12b5dd4ead5f743c6baa640b0216200e89b60da');
-        lendx = lendContract.at('0x6b76731b504303a65488dbc138d7019c249b4216');
+        lendx = lendContract.at('0x51815cebef59b88dafd1a5f24095eee1236ffcdd');
 
         var tokenRegistry = [
             '0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f',
@@ -387,56 +387,44 @@
                 var formInquiryData = $("#debt_inquiry_data").serializeJSON();
                 var formTermsData = $("#terms_data").serializeJSON();
                 var formGuarantorData = $("#guarantor_data").serializeJSON();
-                var agentData = $("#agent_data").serializeJSON();
+                var formAgentData = $("#agent_data").serializeJSON();
 
                 //Inquiry
                 debtInquiry.protocolAddress = lendx.address;
                 debtInquiry.lendee = web3.eth.accounts[0];
                 debtInquiry.lender = (web3.isAddress(formInquiryData.lender) ? formInquiryData.lender : web3.toHex(0));
                 debtInquiry.principalToken = formInquiryData.principalToken;
-                debtInquiry.principalAmount = (formInquiryData.principalAmount ? web3.toWei(formInquiryData.principalAmount.replace(/,/g , ''), 'ether') : 0 );
+                debtInquiry.principalAmount = (formInquiryData.principalAmount ? web3.toWei(formInquiryData.principalAmount.replace(/,/g , ''), 'ether') : 0);
                 debtInquiry.loanStart = (moment(formInquiryData.loanStart, 'DD-MM-YYYY HH:mm', true).isValid() ? moment.tz(formInquiryData.loanStart, 'DD-MM-YYYY HH:mm', true, $("#timezone").val()).valueOf() : 0);
                 debtInquiry.salt = pseudoRandomNumber();
                 //Terms
                 debtTerms.underwriter = (web3.isAddress(formTermsData.underwriter) ? formTermsData.underwriter : web3.toHex(0));
+                debtTerms.originationFee = (formTermsData.originationFee ? web3.toWei(formTermsData.originationFee.replace(/,/g , ''), 'ether') : 0);
+                debtTerms.loanTerm = (formTermsData.loanTerm ? parseInt(formTermsData.loanTerm) : 0);
+                debtTerms.periodicInterestRate = (formTermsData.periodicInterestRate > 0 ? parseInt(formTermsData.periodicInterestRate*1000) : 0);
+                debtTerms.paymentAmount = (formTermsData.paymentAmount ? web3.toWei(formTermsData.paymentAmount.replace(/,/g , ''), 'ether') : 0);
+                debtTerms.paymentInterval = (formTermsData.paymentInterval ? parseInt(formTermsData.paymentInterval) : 0);
+                debtTerms.lateFee = (formTermsData.lateFee ? web3.toWei(formTermsData.lateFee.replace(/,/g , ''), 'ether') : 0);
+                debtTerms.collateralToken = (web3.isAddress(formTermsData.collateralToken) ? formTermsData.collateralToken : web3.toHex(0));
+                debtTerms.collateralAmount = (formTermsData.collateralAmount ? web3.toWei(formTermsData.collateralAmount.replace(/,/g , ''), 'ether') : 0);
+                debtTerms.defaultPeriod = (formTermsData.loanDefaultPeriod ? parseInt(formTermsData.loanDefaultPeriod) : 0);
+                debtTerms.expires = (moment(formTermsData.expires, 'DD-MM-YYYY HH:mm', true).isValid() ? moment.tz(formTermsData.expires, 'DD-MM-YYYY HH:mm', true, $("#timezone").val()).valueOf() : 0);
                 //Guarantor
-
+                debtGuarantor.guarantor =  (web3.isAddress(formGuarantorData.guarantor) ? formGuarantorData.guarantor : web3.toHex(0));
+                debtGuarantor.guarantorFee =  (formGuarantorData.guarantorFee ? web3.toWei(formGuarantorData.guarantorFee.replace(/,/g , ''), 'ether') : 0);
                 //Agent
+                debtAgent.agent = (web3.isAddress(formAgentData.agent) ? formAgentData.agent : web3.toHex(0));
+                debtAgent.lendeeAgentFee =  (formAgentData.lendeeAgentFee ? web3.toWei(formAgentData.lendeeAgentFee.replace(/,/g , ''), 'ether') : 0);
+                debtAgent.lenderAgentFee =  (formAgentData.lenderAgentFee ? web3.toWei(formAgentData.lenderAgentFee.replace(/,/g , ''), 'ether') : 0);
 
-                //Create Debt Request
+                //Create Debt Request Object
                 debtRequest = Object.assign(debtInquiry, debtTerms, debtGuarantor, debtAgent);
 
-                var loanAddresses = [
-                    debtInquiry.protocolAddress,           //Protocol Address
-                    debtInquiry.lendee,                    //Lendee
-                    debtInquiry.lender,                    //Lender
-                    debtInquiry.principalToken,            //Principal Token
-                    debtTerms.underwriter,                 //Underwriter
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0'
-                ];
-                var loanValues = [
-                    debtInquiry.principalAmount,
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    '0x0',
-                    debtInquiry.salt
-                ];
+                //Put Debt Request In Arrays for Contract
+                var debtRequestArgs = processDebtRequestArgsForContract(debtRequest);
+                console.log(debtRequestArgs);
 
-
-                lendx.getDebtHash(loanAddresses, loanValues, function(err, hash){
+                lendx.getDebtHash(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, function(err, hash){
                     if(!err){
                         //web3.personal.sign(hash, web3.eth.accounts[0], function(err, sig){
                         web3.eth.sign(web3.eth.accounts[0], hash, function(err, sig){
@@ -448,9 +436,10 @@
 
                                             var principalToken = erc20Contract.at(debtInquiry.principalToken);
                                             principalToken.symbol(function(err, symbol){
-                                                $("#market_data").prepend('<li><a id="'+String(hash)+'" href="debt_request_data">'+symbol+' - '+$.number(formInquiryData.principalAmount,10)+'</a><a id="'+String(hash)+'" href="submit_debt_request_data" class="uk-button uk-button-default uk-button-small uk-margin-left">Lend</a></li>');
+                                                $("#market_data").prepend('<li><a id="'+String(hash)+'" href="debt_request_data">'+symbol+' - '+web3.fromWei(debtInquiry.principalAmount,'ether')+'</a><a id="'+String(hash)+'" href="submit_debt_request_data" class="uk-button uk-button-default uk-button-small uk-margin-left">Lend</a></li>');
                                             });
                                             debtRequests[String(hash)] = debtRequest;
+                                            UIkit.notification("Request Successfully Signed", {pos: 'top-right', timeout: '1000'});
                                         } else {
                                             console.log('ECRecovery Invalid');
                                         }
@@ -485,7 +474,14 @@
                     case 'debt_request_data':
                         $("#debt_request_data").empty();
                         $.each(debtRequests[e.target.id], function(key, value){
-                            $("#debt_request_data").append('<li>'+key+':'+value+'</li>');
+                            switch(key){
+                                case 'periodicInterestRate':
+                                    $("#debt_request_data").append('<li>'+key+':'+String(web3.fromWei(value,'ether'))+' ('+$.number(value/1000,3)+')</li>');
+                                break;
+                                default:
+                                    $("#debt_request_data").append('<li>'+key+':'+value+'</li>');
+                                break;
+                            }
                         });
                         UIkit.modal("#debt_request_message").show();
                     break;
@@ -522,8 +518,36 @@
             });
         });
 
-        function processDebtRequestArgs(debtRequest){
-
+        function processDebtRequestArgsForContract(debtRequest){
+            var res = {};
+            res.loanAddresses = [
+                debtRequest.protocolAddress,            //Protocol Address
+                debtRequest.lendee,                     //Lendee
+                debtRequest.lender,                     //Lender
+                debtRequest.principalToken,             //Principal Token
+                debtRequest.underwriter,                  //Underwriter
+                debtRequest.collateralToken,              //Collateral Token
+                debtRequest.guarantor,                    //Guarantor
+                debtRequest.agent                         //Agent
+            ];
+            res.loanValues = [
+                debtRequest.principalAmount,            //Principal Amount
+                debtRequest.loanStart,                  //Loan Start
+                debtRequest.originationFee,               //Origination Fee
+                debtRequest.loanTerm,                     //Loan Term
+                debtRequest.periodicInterestRate,         //Periodic Interest Rate
+                debtRequest.paymentAmount,                //Payment Amount
+                debtRequest.paymentInterval,              //Payment Interval
+                debtRequest.lateFee,                      //Late Fee
+                debtRequest.collateralAmount,             //Collateral Amount
+                debtRequest.defaultPeriod,                //Default Period
+                debtRequest.guarantorFee,             //Guarantor Fee
+                debtRequest.lendeeAgentFee,               //Lendee Agent Fee
+                debtRequest.lenderAgentFee,               //Lender Agent Fee
+                debtRequest.expires,                      //Expires
+                debtRequest.salt                        //Salt
+            ];
+            return res;
         }
 
         //Based on https://medium.com/@dazcyril/generating-cryptographic-random-state-in-javascript-in-the-browser-c538b3daae50
