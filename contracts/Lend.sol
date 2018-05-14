@@ -70,7 +70,7 @@ contract Lend is Ownable {
         uint256 paymentInterval;
         uint256 lateFee;
         uint256 collateralAmount;
-        uint256 loanDefaultPeriod;
+        uint256 defaultPeriod;
         uint256 guarantorFee;
         uint256 lendeeAgentFee;
         uint256 lenderAgentFee;
@@ -109,7 +109,7 @@ contract Lend is Ownable {
             paymentInterval: _loanValues[6],
             lateFee: _loanValues[7],
             collateralAmount: _loanValues[8],
-            loanDefaultPeriod: _loanValues[9],
+            defaultPeriod: _loanValues[9],
             guarantorFee: _loanValues[10],
             lendeeAgentFee: _loanValues[11],
             lenderAgentFee: _loanValues[12],
@@ -249,7 +249,7 @@ contract Lend is Ownable {
         //     _loanValues[6],     //Payment Interval
         //     _loanValues[7],     //Late Fee
         //     _loanValues[8],     //Collateral Amount
-        //     _loanValues[9],     //Loan Default Period
+        //     _loanValues[9],     //Default Period
         //     _loanValues[10],    //Guarantor Fee
         //     _loanValues[11],    //Lendee Agent Fee
         //     _loanValues[12],    //Lender Agent Fee
