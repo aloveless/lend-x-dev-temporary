@@ -122,9 +122,9 @@ contract Lend is Ownable {
         //require(tokenRegistry.validateToken(_tokenAddress));
         
         //Validate all conditions upfront to refund max Gas
-        require(debt.lender == address(0) || debt.lender == msg.sender);
-        require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0);
-        require(validSignature(debt.lendee, debt.debtHash, _lendeeSig));
+        require(debt.lender == address(0) || debt.lender == msg.sender, "Invalid Lender");
+        require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0, "Invalid Amounts Provided");
+        require(validSignature(debt.lendee, debt.debtHash, _lendeeSig), "Lendee Signature Validation Failed");
         
         if(debt.underwriter != address(0)){
             require(validSignature(debt.underwriter, debt.debtHash, _underwriterSig));
