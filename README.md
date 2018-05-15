@@ -23,6 +23,7 @@ The Lend-X Protocol is cool
 ##### [SafeMath.sol](/contracts/SafeMath.sol)
 
 ### Token
+### Needed to interact with ERC20 tokens
 ##### [ERC20Interface.sol](/contracts/ERC20Interface.sol)
 
 
