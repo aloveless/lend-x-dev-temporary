@@ -34,6 +34,7 @@ contract Lend is Ownable {
         lENDER_PARTIAL_LOAN_NOT_ALLOWABLE       // Lender does not allow partial fill and fillable amount is less than lender loan amount
     }
     
+    event LogTestValue(uint256 output);
     event LogError(uint8 indexed errorCode, bytes32 indexed debtHash);
     event DeprecatedEvent(address indexed version);
     
@@ -121,7 +122,6 @@ contract Lend is Ownable {
         //require(validateArguments());
         //require(tokenRegistry.validateToken(_tokenAddress));
         
-        //Validate all conditions upfront to refund max Gas
         require(debt.lender == address(0) || debt.lender == msg.sender, "Invalid Lender");
         require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0, "Invalid Amounts Provided");
         require(validSignature(debt.lendee, debt.debtHash, _lendeeSig), "Lendee Signature Validation Failed");
@@ -160,6 +160,9 @@ contract Lend is Ownable {
         uint256 currentPrincipal = getPrincipal(debt.debtHash);
         uint256 principalAmountRemaining = debt.principal.sub(currentPrincipal);
         uint256 lenderLoanAmount = (_amountToLend < principalAmountRemaining ? _amountToLend : principalAmountRemaining);
+        emit LogTestValue(currentPrincipal);
+        emit LogTestValue(principalAmountRemaining);
+        emit LogTestValue(lenderLoanAmount);
         
         if(_lenderLoanOptions[0] == false && lenderLoanAmount < _amountToLend){
             emit LogError(uint8(Errors.lENDER_PARTIAL_LOAN_NOT_ALLOWABLE), debt.debtHash);
@@ -171,6 +174,8 @@ contract Lend is Ownable {
             return 0;
         }
         
+        //is this even needed, lender fee might be zero too
+        //should this be the 
         if(validRounding(lenderLoanAmount, debt.principal, debt.lenderAgentFee)){
             emit LogError(uint8(Errors.ROUNDING_ERROR_TOO_LARGE), debt.debtHash);
             return 0;
