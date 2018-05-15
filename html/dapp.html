@@ -234,7 +234,7 @@
                 <div class="uk-width-1-2">
                     <form id="lender_data" class="uk-grid-small" uk-grid>
                         <div class="uk-width-1-1@s"><label class="uk-form-label">Amount To Lend</label><input class="uk-input" type="text" name="amountToLend" placeholder="Amount (Principal Token)"></div>
-                        <div class="uk-width-1-1@s"><label class="uk-form-label">Allow Partial Loan </label><input class="uk-checkbox" type="checkbox" name="lenderLoanOptions[]" /></div>
+                        <div class="uk-width-1-1@s"><label class="uk-form-label">Allow Partial Loan </label><input class="uk-checkbox" type="checkbox" name="lenderLoanOptions" value="allowPartialLoan" /></div>
                     </form>
                 </div>
             </div>
@@ -265,7 +265,7 @@
 
         //Contract Objects
         protocolToken = erc20Contract.at('0xf12b5dd4ead5f743c6baa640b0216200e89b60da');
-        lendx = lendContract.at('0x51815cebef59b88dafd1a5f24095eee1236ffcdd');
+        lendx = lendContract.at('0x78f417302de7d49046688e4e39807e6addc47877');
 
         var tokenRegistry = [
             '0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f',
@@ -367,8 +367,8 @@
 
 
             //Watch Protocol Events
-            var deprecatedEvent = lendx.DeprecatedEvent({}, {fromBlock: 0, toBlock: 'latest'});
-            deprecatedEvent.watch(function(error, result){
+            var LogError = lendx.LogError({}, {fromBlock: 0, toBlock: 'latest'});
+            LogError.watch(function(error, result){
                if (!error){
                     console.log(result);
                     $("#logs").prepend('<li>'+result.event+'</li>');
@@ -507,11 +507,20 @@
         });
 
         $("#lender_submit_debt_request").on('click', function(){
+            var formLenderData = $("#lender_data").serializeJSON();
+            var amountToLend = (formLenderData.amountToLend ? web3.toWei(formLenderData.amountToLend.replace(/,/g , ''), 'ether') : 0);
+            var lenderLoanOptions = [];
+            lenderLoanOptions[0] = ($("input[name=lenderLoanOptions]").prop('checked') && $("input[name=lenderLoanOptions]:checked")[0].value == 'allowPartialLoan' ? true : false);
             var debtRequest = debtRequests[$(this).data('target')];
-
-            lendx.submitDebtAgreement([], [], function(err, res){
+            var debtRequestArgs = processDebtRequestArgsForContract(debtRequest);
+            
+            lendx.submitDebtAgreement(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, tx){
                 if(!err){
-                
+                    console.log(tx);
+                    console.log(web3.eth.getTransaction(tx));
+                    var txReceipt = web3.eth.getTransactionReceipt(tx);
+                    console.log(txReceipt);
+                    console.log((txReceipt.status == '0x00' ? 'error' : 'valid'));
                 } else {
                     console.log('Error: '+err);
                 }
@@ -521,38 +530,38 @@
         function processDebtRequestArgsForContract(debtRequest){
             var res = {};
             res.loanAddresses = [
-                debtRequest.protocolAddress,            //Protocol Address
-                debtRequest.lendee,                     //Lendee
-                debtRequest.lender,                     //Lender
-                debtRequest.principalToken,             //Principal Token
-                debtRequest.underwriter,                  //Underwriter
-                debtRequest.collateralToken,              //Collateral Token
-                debtRequest.guarantor,                    //Guarantor
-                debtRequest.agent                         //Agent
+                debtRequest.protocolAddress,                //Protocol Address
+                debtRequest.lendee,                         //Lendee
+                debtRequest.lender,                         //Lender
+                debtRequest.principalToken,                 //Principal Token
+                debtRequest.underwriter,                    //Underwriter
+                debtRequest.collateralToken,                //Collateral Token
+                debtRequest.guarantor,                      //Guarantor
+                debtRequest.agent                           //Agent
             ];
             res.loanValues = [
-                debtRequest.principalAmount,            //Principal Amount
-                debtRequest.loanStart,                  //Loan Start
-                debtRequest.originationFee,               //Origination Fee
-                debtRequest.loanTerm,                     //Loan Term
-                debtRequest.periodicInterestRate,         //Periodic Interest Rate
-                debtRequest.paymentAmount,                //Payment Amount
-                debtRequest.paymentInterval,              //Payment Interval
-                debtRequest.lateFee,                      //Late Fee
-                debtRequest.collateralAmount,             //Collateral Amount
-                debtRequest.defaultPeriod,                //Default Period
-                debtRequest.guarantorFee,             //Guarantor Fee
-                debtRequest.lendeeAgentFee,               //Lendee Agent Fee
-                debtRequest.lenderAgentFee,               //Lender Agent Fee
-                debtRequest.expires,                      //Expires
-                debtRequest.salt                        //Salt
+                debtRequest.principalAmount,                //Principal Amount
+                debtRequest.loanStart,                      //Loan Start
+                debtRequest.originationFee,                 //Origination Fee
+                debtRequest.loanTerm,                       //Loan Term
+                debtRequest.periodicInterestRate,           //Periodic Interest Rate
+                debtRequest.paymentAmount,                  //Payment Amount
+                debtRequest.paymentInterval,                //Payment Interval
+                debtRequest.lateFee,                        //Late Fee
+                debtRequest.collateralAmount,               //Collateral Amount
+                debtRequest.defaultPeriod,                  //Default Period
+                debtRequest.guarantorFee,                   //Guarantor Fee
+                debtRequest.lendeeAgentFee,                 //Lendee Agent Fee
+                debtRequest.lenderAgentFee,                 //Lender Agent Fee
+                debtRequest.expires,                        //Expires
+                debtRequest.salt                            //Salt
             ];
             return res;
         }
 
         //Based on https://medium.com/@dazcyril/generating-cryptographic-random-state-in-javascript-in-the-browser-c538b3daae50
         //Implements Javascript Cryptography API: https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
-        //** Look into including seed
+        //** Look into properly seeding
         function pseudoRandomNumber(seed){
             //const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             const validChars = '0123456789'; //numbers only
