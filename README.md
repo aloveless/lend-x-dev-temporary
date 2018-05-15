@@ -22,8 +22,8 @@ The Lend-X Protocol is cool
 ##### [ECRecovery.sol](/contracts/ECRecovery.sol)
 ##### [SafeMath.sol](/contracts/SafeMath.sol)
 
-### Token
-Needed to interact with ERC20 tokens
+### Interfaces
+ERC20 function definitions needed to interact with ERC20 standard tokens
 ##### [ERC20Interface.sol](/contracts/ERC20Interface.sol)
 
 
