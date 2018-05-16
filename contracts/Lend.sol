@@ -166,6 +166,12 @@ contract Lend is Ownable {
             return 0;
         }
         
+        //Needs to be vetted
+        if(debt.collateralAmount > 0 && isRoundingError(lenderLoanAmount, debt.principal, debt.collateralAmount)){
+            emit LogError(uint8(Errors.ROUNDING_ERROR_TOO_LARGE), debt.debtHash);
+            return 0;
+        }
+        
         if(!validBalancesAndAllowances(debt, lenderLoanAmount)){
             emit LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), debt.debtHash);
             return 0;
@@ -251,7 +257,7 @@ contract Lend is Ownable {
         uint256 lendeeFees = lendeeFees.add((debt.underwriter != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee) : uint256(0)));
         lendeeFees = lendeeFees.add((debt.guarantor != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee) : uint256(0)));
         lendeeFees = lendeeFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lendeeAgentFee) : uint256(0)));
-        uint256 lenderFees = lenderFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lenderAgentFee) : uint256(0)));        
+        uint256 lenderFees = lenderFees.add((debt.agent != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.lenderAgentFee) : uint256(0)));
         uint256 guaranteedAmount = (debt.collateralAmount > 0 ? getPartialAmount(lenderLoanAmount, debt.principal, debt.collateralAmount) : uint256(0));
         
         if(debt.principalToken == address(protocolToken)){
@@ -283,6 +289,14 @@ contract Lend is Ownable {
     
     function getBalance(address _token, address _owner) public view returns(uint256){
         return ERC20Interface(_token).balanceOf.gas(GAS_LIMIT)(_owner);
+    }
+
+    function isRoundingError(uint numerator, uint denominator, uint target) internal pure returns(bool){
+        uint remainder = mulmod(target, numerator, denominator);
+        if (remainder == 0) { return false; }
+
+        uint errPercentageTimes1000000 = SafeMath.div(SafeMath.mul(remainder, 1000000), SafeMath.mul(numerator, target));
+        return errPercentageTimes1000000 > 1000;
     }
     
     function validSignature(address _signer, bytes32 _debtHash, bytes _sig) public pure returns(bool){
@@ -323,15 +337,6 @@ contract Lend is Ownable {
     
     function keyExists(bytes32 _requestID) internal view returns(bool){
         return externalStorage.getBooleanValue(_requestID, keccak256('Exists'));
-    }
-    
-    //May not need this
-    function validRounding(uint numerator, uint denominator, uint target) internal pure returns(bool){
-        uint remainder = mulmod(target, numerator, denominator);
-        if (remainder == 0) { return false; }
-
-        uint errPercentageTimes1000000 = SafeMath.div(SafeMath.mul(remainder, 1000000), SafeMath.mul(numerator, target));
-        return errPercentageTimes1000000 > 1000;
     }
     
     /**
