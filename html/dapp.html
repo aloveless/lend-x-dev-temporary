@@ -231,7 +231,8 @@
         <button class="uk-modal-close-default" type="button" uk-close></button>
         <div class="uk-modal-header"><h4>Minimum Lendee Allowances</h4></div>
         <div class="uk-modal-body">
-
+            <ul id="lendee_approvals_data" class="uk-list uk-list-striped uk-text-small">
+            </ul>
             <hr />
             <p class="uk-text-right">
                 <a href="#debt_inquiry" class="uk-button uk-button-default" uk-toggle>Back</a>
@@ -247,7 +248,8 @@
         <button class="uk-modal-close-default" type="button" uk-close></button>
         <div class="uk-modal-header"><h4>Minimum Lender Allowances</h4></div>
         <div class="uk-modal-body">
-            
+            <ul id="lender_approvals_data" class="uk-list uk-list-striped uk-text-small">
+            </ul>
             <hr />
             <p class="uk-text-right">
                 <a href="#process_loan_modal" class="uk-button uk-button-default" uk-toggle>Back</a>
@@ -409,13 +411,13 @@
             //Watch Protocol Events
             var LogTestValue = lendx.LogTestValue({}, {fromBlock: 0, toBlock: 'latest'});
             LogTestValue.watch(function(err, res){
-                console.log(res);
+                //console.log(res);
                  $("#logs").prepend('<li>'+res.event+' ('+res.logIndex+') '+web3.fromWei(res.args.output,'ether')+'</li>');
             });
             var LogError = lendx.LogError({}, {fromBlock: 0, toBlock: 'latest'});
             LogError.watch(function(err, res){
                if (!err){
-                    console.log(res);
+                    //console.log(res);
                     var errorCode = [
                         "AGREEMENT_EXPIRED",
                         "LOAN_FILLED",
@@ -597,19 +599,24 @@
             var formGuarantorData = $("#guarantor_data").serializeJSON();
             var formAgentData = $("#agent_data").serializeJSON();
 
-            //convert to big number for arithmetic
             protocolTokenFees.originationFee = web3.toBigNumber((formTermsData.originationFee ? web3.toWei(formTermsData.originationFee.replace(/,/g , ''), 'ether') : 0));
             protocolTokenFees.guarantorFee = web3.toBigNumber((formGuarantorData.guarantorFee ? web3.toWei(formGuarantorData.guarantorFee.replace(/,/g , ''), 'ether') : 0));
             protocolTokenFees.lendeeAgentFee = web3.toBigNumber((formAgentData.lendeeAgentFee ? web3.toWei(formAgentData.lendeeAgentFee.replace(/,/g , ''), 'ether') : 0));
 
-            console.log(protocolTokenFees);
+            //Fixed Payment Loan
+            //# of payments = (-1*Math.log(1-((principal/payment amount)*(periodic interest rate/100))))/Math.log(1+(periodic interest rate/100))
+            var numPayments = ((web3.toBigNumber(-1).mul(web3.toBigNumber(Math.log(web3.toBigNumber(1).minus(((web3.toBigNumber(formInquiryData.principalAmount).div(web3.toBigNumber(formTermsData.paymentAmount))).mul(web3.toBigNumber(formTermsData.periodicInterestRate/100)))))))).div(web3.toBigNumber(Math.log(1+(formTermsData.periodicInterestRate/100)))));
+            var totalRepayment = numPayments.mul(web3.toBigNumber(formTermsData.paymentAmount));
+            $("#lendee_approvals_data").append('<li># of Payments: '+numPayments+'</li>');
+            $("#lendee_approvals_data").append('<li>Total Repayment: '+totalRepayment+'<br>'+'</li>');
         });
 
         $("#lender_submit_approvals").on('click', function(){
             var debtRequest = debtRequests[$(this).data('target')];
 
             if(debtRequest.principalToken == protocolToken.address){
-                console.log(web3.toBigNumber(debtRequest.lenderAgentFee).plus(web3.toBigNumber(debtRequest.principalAmount)));
+                //web3.fromWei(debtRequest.principalAmount,'ether');
+                $("#lender_approvals_data").append('<li></li>');
             } else {
 
             }
