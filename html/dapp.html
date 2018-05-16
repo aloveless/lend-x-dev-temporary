@@ -580,7 +580,11 @@
         $("#lendee_approvals_modal_trigger, #lender_approvals_modal_trigger").on('click', function(){
             switch($(this).attr('id')){
                 case 'lendee_approvals_modal_trigger':
-
+                    var allowances = getLendeeAllowances();
+                    $("#lendee_approvals_data").empty();
+                    $("#lendee_approvals_data").append('<li># of Payments: '+allowances.numPayments+'</li>');
+                    $("#lendee_approvals_data").append('<li>Total Repayment: '+allowances.totalRepayment+'<br>'+'</li>');
+                    $("#lendee_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'<br>'+'</li>');
                     UIkit.modal("#lendee_approvals_modal").show();
                 break;
                 case 'lender_approvals_modal_trigger':
@@ -589,29 +593,43 @@
                 break;
             }
         });
-        
+
         $("#lendee_submit_approvals").on('click', function(){
-            var protocolTokenFees = {};
-            var principalTokenFees = {};
-                
+
+        });
+
+        function getLendeeAllowances(){
+            var allowances = {};
             var formInquiryData = $("#debt_inquiry_data").serializeJSON();
             var formTermsData = $("#terms_data").serializeJSON();
             var formGuarantorData = $("#guarantor_data").serializeJSON();
             var formAgentData = $("#agent_data").serializeJSON();
 
-            protocolTokenFees.originationFee = web3.toBigNumber((formTermsData.originationFee ? web3.toWei(formTermsData.originationFee.replace(/,/g , ''), 'ether') : 0));
-            protocolTokenFees.guarantorFee = web3.toBigNumber((formGuarantorData.guarantorFee ? web3.toWei(formGuarantorData.guarantorFee.replace(/,/g , ''), 'ether') : 0));
-            protocolTokenFees.lendeeAgentFee = web3.toBigNumber((formAgentData.lendeeAgentFee ? web3.toWei(formAgentData.lendeeAgentFee.replace(/,/g , ''), 'ether') : 0));
+            var originationFee = (formTermsData.originationFee ? formTermsData.originationFee.replace(/,/g , '') : 0);
+            var guarantorFee = (formGuarantorData.guarantorFee ? formGuarantorData.guarantorFee.replace(/,/g , '') : 0);
+            var lendeeAgentFee = (formAgentData.lendeeAgentFee ? formAgentData.lendeeAgentFee.replace(/,/g , '') : 0);
+            var principalAmount = (formInquiryData.principalAmount ? formInquiryData.principalAmount.replace(/,/g , '') : 0);
+            var paymentAmount = (formTermsData.paymentAmount ? formTermsData.paymentAmount.replace(/,/g , '') : 0);
+            var periodicInterestRate = (formTermsData.periodicInterestRate ? formTermsData.periodicInterestRate.replace(/,/g , '') : 0);
 
             //Fixed Payment Loan
             //# of payments = (-1*Math.log(1-((principal/payment amount)*(periodic interest rate/100))))/Math.log(1+(periodic interest rate/100))
-            var numPayments = ((web3.toBigNumber(-1).mul(web3.toBigNumber(Math.log(web3.toBigNumber(1).minus(((web3.toBigNumber(formInquiryData.principalAmount).div(web3.toBigNumber(formTermsData.paymentAmount))).mul(web3.toBigNumber(formTermsData.periodicInterestRate/100)))))))).div(web3.toBigNumber(Math.log(1+(formTermsData.periodicInterestRate/100)))));
-            var totalRepayment = numPayments.mul(web3.toBigNumber(formTermsData.paymentAmount));
-            $("#lendee_approvals_data").append('<li># of Payments: '+numPayments+'</li>');
-            $("#lendee_approvals_data").append('<li>Total Repayment: '+totalRepayment+'<br>'+'</li>');
-        });
+            if(formTermsData.periodicInterestRate > 0){
+                allowances.numPayments = ((web3.toBigNumber(-1).mul(web3.toBigNumber(Math.log(web3.toBigNumber(1).minus(((web3.toBigNumber(principalAmount).div(web3.toBigNumber(paymentAmount))).mul(web3.toBigNumber(periodicInterestRate/100)))))))).div(web3.toBigNumber(Math.log(1+(periodicInterestRate/100)))));
+                allowances.totalRepayment = allowances.numPayments.mul(web3.toBigNumber(paymentAmount));
+                allowances.protocolFees = web3.toBigNumber(originationFee).plus(web3.toBigNumber(guarantorFee)).plus(web3.toBigNumber(lendeeAgentFee));
+            } else {
+                allowances.numPayments = web3.toBigNumber(principalAmount).div(web3.toBigNumber(paymentAmount));
+            }
+
+            return allowances;
+        }
 
         $("#lender_submit_approvals").on('click', function(){
+
+        });
+
+        function getLenderAllowances(){
             var debtRequest = debtRequests[$(this).data('target')];
 
             if(debtRequest.principalToken == protocolToken.address){
@@ -620,7 +638,9 @@
             } else {
 
             }
-        });
+
+            return;
+        }
 
         $("#lender_submit_debt_request, #lender_submit_debt_request_call_locally").on('click', function(){
             var formLenderData = $("#lender_data").serializeJSON();
