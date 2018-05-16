@@ -25,25 +25,20 @@ contract Lend is Ownable {
     uint16 constant public GAS_LIMIT = 4999;
     
     //https://github.com/ethereum/solidity/issues/1686
-    //Return Transaction Errors in Require/Revert not yet supported 
+    //Return Transaction Error from Require/Revert not supported yet
     enum Errors {
-        AGREEMENT_EXPIRED,                      // Order has already expired
-        LOAN_FILLED,                            // Order has already been fully filled
+        AGREEMENT_EXPIRED,                      // Agreement has already expired
+        LOAN_FILLED,                            // Debt has been fully transfered
         ROUNDING_ERROR_TOO_LARGE,               // Rounding error too large
         INSUFFICIENT_BALANCE_OR_ALLOWANCE,      // Insufficient balance or allowance for token transfer
         lENDER_PARTIAL_LOAN_NOT_ALLOWABLE       // Lender does not allow partial fill and fillable amount is less than lender loan amount
     }
     
     event LogTestValue(uint256 output);
-    event LogError(uint8 indexed errorCode, bytes32 indexed debtHash);
-    event DeprecatedEvent(address indexed version);
     
-    event LockedEvent(
-        address indexed version,
-        address indexed nextVersion,
-        address prevVersion,
-        uint8 indexed reasonCode
-    );
+    event LogError(uint8 indexed errorCode, bytes32 indexed debtHash);
+    event DeprecatedEvent(address supercededBy);
+    event LockedEvent(bool status);
     
     event DebtAgreementEvent(
         address indexed lendee,
@@ -160,9 +155,6 @@ contract Lend is Ownable {
         uint256 currentPrincipal = getPrincipal(debt.debtHash);
         uint256 principalAmountRemaining = debt.principal.sub(currentPrincipal);
         uint256 lenderLoanAmount = (_amountToLend < principalAmountRemaining ? _amountToLend : principalAmountRemaining);
-        emit LogTestValue(currentPrincipal);
-        emit LogTestValue(principalAmountRemaining);
-        emit LogTestValue(lenderLoanAmount);
         
         if(_lenderLoanOptions[0] == false && lenderLoanAmount < _amountToLend){
             emit LogError(uint8(Errors.lENDER_PARTIAL_LOAN_NOT_ALLOWABLE), debt.debtHash);
@@ -171,13 +163,6 @@ contract Lend is Ownable {
         
         if(lenderLoanAmount == 0){
             emit LogError(uint8(Errors.LOAN_FILLED), debt.debtHash);
-            return 0;
-        }
-        
-        //is this even needed, lender fee might be zero too
-        //should this be the 
-        if(validRounding(lenderLoanAmount, debt.principal, debt.lenderAgentFee)){
-            emit LogError(uint8(Errors.ROUNDING_ERROR_TOO_LARGE), debt.debtHash);
             return 0;
         }
         
@@ -262,16 +247,6 @@ contract Lend is Ownable {
         //     _loanValues[14]     //Salt
     }
     
-    function submitCollateralizedDebtRequest() public returns(bool){
-        
-        return true;
-    }
-    
-    function approveCreditLineOffer(bytes32 _requestID) public returns(bytes32){
-        
-        return _requestID;
-    }
-    
     function validBalancesAndAllowances(DebtAgreement debt, uint256 lenderLoanAmount) internal view returns(bool){
         uint256 lendeeFees = lendeeFees.add((debt.underwriter != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.originationFee) : uint256(0)));
         lendeeFees = lendeeFees.add((debt.guarantor != address(0) ? getPartialAmount(lenderLoanAmount, debt.principal, debt.guarantorFee) : uint256(0)));
@@ -297,11 +272,10 @@ contract Lend is Ownable {
             && (guaranteedAmount == uint256(0) || getBalance(debt.collateralToken, debt.guarantor) >= guaranteedAmount)
             && (guaranteedAmount == uint256(0) || getAllowance(debt.collateralToken, debt.guarantor) >= guaranteedAmount);
     }
-    
-    //Don't think we need this, just call payment handler directly from inline code
-    // function transferFrom(address _token, address _from, address _to, uint _value) internal returns(bool){
-    //     return paymentHandler.transferFrom(_token, _from, _to, _value);
-    // }
+
+    function approveCreditLineOffer(bytes32 _requestID) public returns(uint256 approveOfferAmount){
+        return approveOfferAmount;
+    }
     
     function getAllowance(address _token, address _owner) public view returns (uint256){
         return ERC20Interface(_token).allowance.gas(GAS_LIMIT)(_owner, address(paymentHandler));
@@ -317,12 +291,6 @@ contract Lend is Ownable {
     
     function getPartialAmount(uint256 numerator, uint256 denominator, uint256 target) public pure returns(uint256){
         return SafeMath.div(SafeMath.mul(numerator, target), denominator);
-    }
-    
-    
-    function forgiveDebt(bytes32 debtHash, uint256 amountToForgive) public returns(bool){
-        // also need to reduce principal by Lender amount not withdrawn and possibly some interest accrued?
-        externalStorage.setLenderBooleanValue(debtHash, msg.sender, keccak256("ForgiveDebt"), true);
     }
     
     function getPrincipal(bytes32 debtHash) public view returns(uint256){
@@ -343,16 +311,22 @@ contract Lend is Ownable {
         require(!keyExists(_requestID));
         
     }
+
+    function forgiveDebt(bytes32 debtHash, uint256 amountToForgive) public returns(bool){
+        // also need to reduce principal by Lender amount not withdrawn and possibly some interest accrued?
+        externalStorage.setLenderBooleanValue(debtHash, msg.sender, keccak256("ForgiveDebt"), true);
+    }
     
     function initiateSecondaryDebtSale(){
         
     }
     
-    function keyExists(bytes32 _requestID) public view returns(bool){
+    function keyExists(bytes32 _requestID) internal view returns(bool){
         return externalStorage.getBooleanValue(_requestID, keccak256('Exists'));
     }
     
-    function validRounding(uint numerator, uint denominator, uint target) public pure returns(bool){
+    //May not need this
+    function validRounding(uint numerator, uint denominator, uint target) internal pure returns(bool){
         uint remainder = mulmod(target, numerator, denominator);
         if (remainder == 0) { return false; }
 
@@ -361,23 +335,34 @@ contract Lend is Ownable {
     }
     
     /**
-    * @dev Prevent New Request Propagation, Allows Existing To Complete
+    * @dev Prevent New Request Propagation, Allows Existing Withdrawals To Complete
+    * @param _supercededBy Protocol Contract That Replaces This Version
+    * @return Status
     */
-    function deprecateContract() public onlyOwner returns(bool){
+    function deprecateContract(address _supercededBy) public onlyOwner returns(bool){
         require(!deprecated);
-        emit DeprecatedEvent(address(this));
+        emit DeprecatedEvent(_supercededBy);
         return deprecated = true;
     }
     
     /**
-    * @dev Lock All State Changes
+    * @dev Global Trigger To Stop All State Changes & Transfers
+    * @return Status
     */
     function lockContract() public onlyOwner returns(bool){
-        
+        require(!locked);
+        emit LockedEvent(true);
+        return locked = true;
     }
-    
+
+    /**
+    * @dev Unlock
+    * @return Status
+    */
     function unlockContract() public onlyOwner returns(bool){
-        
+        require(locked);
+        emit LockedEvent(false);
+        return locked = false;
     }
     
     modifier isDeprecated(){
