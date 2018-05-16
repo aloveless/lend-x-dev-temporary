@@ -23,7 +23,7 @@
 
 </head>
 <body>
-    <div class="uk-container uk-container-expand" >
+    <div class="uk-container uk-container-expand">
         <nav class="uk-navbar-container uk-navbar-transparent uk-navbar">
             <div class="uk-navbar-left">
                 <a class="uk-navbar-item" href="/index"><img class="uk-logo" src="/assets/img/logo-color.png" /></a>
@@ -133,76 +133,83 @@
 <!-- Loan Inquiry Modal -->
 <div id="debt_inquiry" uk-modal>
     <div class="uk-modal-dialog uk-modal-body">
-        <form id="debt_inquiry_data" class="uk-grid-small" uk-grid>
-            <div class="uk-width-1-1@s"><label class="uk-form-label">Lender</label><input class="uk-input" type="text" name="lender" placeholder="Address"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Principal Token</label><select id="principalToken" class="uk-select" name="principalToken"></select></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Principal Amount</label><input class="uk-input" type="text" name="principalAmount" placeholder="Amount"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Loan Start</label><input class="uk-input" type="text" name="loanStart" placeholder="Unix Timestamp" data-field="datetime"></div>
-        </form>
+        <div  uk-switcher>
+            <button class="uk-button uk-button-default">Loan</button>
+            <button class="uk-button uk-button-default">Terms</button>
+            <button class="uk-button uk-button-default">Guarantor</button>
+            <button class="uk-button uk-button-default">Agent</button>
+        </div>
         <div class="uk-divider-icon"></div>
-        <button class="uk-button uk-button-default" uk-toggle="target: #terms_message">Terms</button>
-        <button class="uk-button uk-button-default" uk-toggle="target: #guarantor_message">Guarantor</button>
-        <button class="uk-button uk-button-default" uk-toggle="target: #agent_fees_message">Agent</button>
-        <hr />
-        <p class="uk-text-right">
-            <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
-            <button id="lendee_sign_debt_request" class="uk-button uk-button-primary" type="button">Sign</button>
-        </p>
+        <div class="uk-switcher uk-margin">
+            <div>
+                <form id="debt_inquiry_data" class="uk-grid-small" uk-grid>
+                    <div class="uk-width-1-1@s"><label class="uk-form-label">Lender</label><input class="uk-input" type="text" name="lender" placeholder="Address"></div>
+                    <div class="uk-width-1-2@s"><label class="uk-form-label">Principal Token</label><select id="principalToken" class="uk-select" name="principalToken"></select></div>
+                    <div class="uk-width-1-2@s"><label class="uk-form-label">Principal Amount</label><input class="uk-input" type="text" name="principalAmount" placeholder="Amount"></div>
+                    <div class="uk-width-1-2@s"><label class="uk-form-label">Loan Start</label><input class="uk-input" type="text" name="loanStart" placeholder="Unix Timestamp" data-field="datetime"></div>
+                </form>
+                <hr />
+                <p class="uk-text-right">
+                    <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
+                    <button id="lendee_approvals_modal_trigger" class="uk-button uk-button-primary" type="button">Allowances <span uk-icon="icon: info" uk-tooltip="Send transaction to allow protocol to transfer fees, principal &amp; estimated interest on your behalf"></span></button>
+                    <button id="lendee_sign_debt_request" class="uk-button uk-button-primary" type="button">Sign</button>
+                </p>
+            </div>
+
+            <!-- Loan Terms Modal -->
+            <div id="terms_message">
+                <div>
+                    <form id="terms_data" class="uk-grid-small" uk-grid>
+                        <div class="uk-width-1-1@s"><label class="uk-form-label">Underwriter</label><input class="uk-input" type="text" name="underwriter" placeholder="Address"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Origination Fee</label><input class="uk-input" type="text" name="originationFee" placeholder="Amount (Lend-X)"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Loan Term</label><input class="uk-input" type="text" name="loanTerm" placeholder="# of Blocks"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Periodic Interest Rate (<span id="periodic_interest_rate_percent"></span>)</label><input id="periodic_interest_rate" class="uk-input" type="text" name="periodicInterestRate" placeholder=".043"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Payment Amount</label><input class="uk-input" type="text" name="paymentAmount" placeholder="Amount (Principal Token)"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Payment Interval</label><input class="uk-input" type="text" name="paymentInterval" placeholder="# of Blocks"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Late Fee</label><input class="uk-input" type="text" name="lateFee" placeholder="Amount (Principal Token)"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Collateral Token</label><input class="uk-input" type="text" name="collateralToken" placeholder="Address"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Collateral Amount</label><input class="uk-input" type="text" name="collateralAmount" placeholder="Amount"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Default Period</label><input class="uk-input" type="text" name="defaultPeriod" placeholder="# of Blocks"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Expires</label><input class="uk-input" type="text" name="expires" placeholder="Unix Timestamp" data-field="datetime"></div>
+                    </form>
+                    <hr />
+                    <p class="uk-text-left">
+                        
+                    </p>
+                </div>
+            </div>
+
+            <!-- Loan Guarantor Modal -->
+            <div id="guarantor_message">
+                <div>
+                    <form id="guarantor_data" class="uk-grid-small" uk-grid>
+                        <div class="uk-width-1-1@s"><label class="uk-form-label">Guarantor</label><input class="uk-input" type="text" name="guarantor" placeholder="Address"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Guarantor Fee</label><input class="uk-input" type="text" name="guarantorFee" placeholder="Amount (Lend-X)"></div>
+                    </form>
+                    <hr />
+                    <p class="uk-text-left">
+                        
+                    </p>
+                </div>
+            </div>
+
+            <!-- Agent Fees Modal -->
+            <div id="agent_fees_message">
+                <div>
+                    <form id="agent_data" class="uk-grid-small" uk-grid>
+                        <div class="uk-width-1-1@s"><label class="uk-form-label">Agent</label><input class="uk-input" type="text" name="agent" placeholder="Address"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Lendee Agent Fee</label><input class="uk-input" type="text" name="lendeeAgentFee" placeholder="Amount (Lend-X)"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Lender Agent Fee</label><input class="uk-input" type="text" name="lenderAgentFee" placeholder="Amount (Lend-X)"></div>
+                    </form>
+                    <hr />
+                    <p class="uk-text-left">
+                        
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-<!-- Loan Terms Modal -->
-<div id="terms_message" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body">
-        <form id="terms_data" class="uk-grid-small" uk-grid>
-            <div class="uk-width-1-1@s"><label class="uk-form-label">Underwriter</label><input class="uk-input" type="text" name="underwriter" placeholder="Address"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Origination Fee</label><input class="uk-input" type="text" name="originationFee" placeholder="Amount (Lend-X)"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Loan Term</label><input class="uk-input" type="text" name="loanTerm" placeholder="# of Blocks"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Periodic Interest Rate (<span id="periodic_interest_rate_percent"></span>)</label><input id="periodic_interest_rate" class="uk-input" type="text" name="periodicInterestRate" placeholder=".043"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Payment Amount</label><input class="uk-input" type="text" name="paymentAmount" placeholder="Amount (Principal Token)"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Payment Interval</label><input class="uk-input" type="text" name="paymentInterval" placeholder="# of Blocks"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Late Fee</label><input class="uk-input" type="text" name="lateFee" placeholder="Amount (Principal Token)"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Collateral Token</label><input class="uk-input" type="text" name="collateralToken" placeholder="Address"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Collateral Amount</label><input class="uk-input" type="text" name="collateralAmount" placeholder="Amount"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Default Period</label><input class="uk-input" type="text" name="defaultPeriod" placeholder="# of Blocks"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Expires</label><input class="uk-input" type="text" name="expires" placeholder="Unix Timestamp" data-field="datetime"></div>
-        </form>
-        <hr />
-        <p class="uk-text-left">
-            <a href="#debt_inquiry" class="uk-button uk-button-default" uk-toggle>Back</a>
-        </p>
-    </div>
-</div>
-
-<!-- Loan Guarantor Modal -->
-<div id="guarantor_message" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body">
-        <form id="guarantor_data" class="uk-grid-small" uk-grid>
-            <div class="uk-width-1-1@s"><label class="uk-form-label">Guarantor</label><input class="uk-input" type="text" name="guarantor" placeholder="Address"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Guarantor Fee</label><input class="uk-input" type="text" name="guarantorFee" placeholder="Amount (Lend-X)"></div>
-        </form>
-        <hr />
-        <p class="uk-text-left">
-            <a href="#debt_inquiry" class="uk-button uk-button-default" uk-toggle>Back</a>
-        </p>
-    </div>
-</div>
-
-<!-- Agent Fees Modal -->
-<div id="agent_fees_message" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body">
-        <form id="agent_data" class="uk-grid-small" uk-grid>
-            <div class="uk-width-1-1@s"><label class="uk-form-label">Agent</label><input class="uk-input" type="text" name="agent" placeholder="Address"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Lendee Agent Fee</label><input class="uk-input" type="text" name="lendeeAgentFee" placeholder="Amount (Lend-X)"></div>
-            <div class="uk-width-1-2@s"><label class="uk-form-label">Lender Agent Fee</label><input class="uk-input" type="text" name="lenderAgentFee" placeholder="Amount (Lend-X)"></div>
-        </form>
-        <hr />
-        <p class="uk-text-left">
-            <a href="#debt_inquiry" class="uk-button uk-button-default" uk-toggle>Back</a>
-        </p>
-    </div>
-</div>
-
 
 <!-- Debt Request Data Modal -->
 <div id="debt_request_message" class="uk-modal-container" uk-modal>
@@ -218,8 +225,40 @@
     </div>
 </div>
 
-<!-- Submit Debt Request Modal -->
-<div id="submit_debt_request" class="uk-modal-container" uk-modal>
+<!-- Lendee Approvals Modal -->
+<div id="lendee_approvals_modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <div class="uk-modal-header"><h4>Minimum Lendee Allowances</h4></div>
+        <div class="uk-modal-body">
+
+            <hr />
+            <p class="uk-text-right">
+                <a href="#debt_inquiry" class="uk-button uk-button-default" uk-toggle>Back</a>
+                <button id="lendee_submit_approvals" class="uk-button uk-button-primary" type="button">Submit Approvals</button>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Lender Approvals Modal -->
+<div id="lender_approvals_modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <div class="uk-modal-header"><h4>Minimum Lender Allowances</h4></div>
+        <div class="uk-modal-body">
+            
+            <hr />
+            <p class="uk-text-right">
+                <a href="#process_loan_modal" class="uk-button uk-button-default" uk-toggle>Back</a>
+                <button id="lender_submit_approvals" class="uk-button uk-button-primary" type="button">Submit Approvals</button>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Process Loan Modal -->
+<div id="process_loan_modal" class="uk-modal-container" uk-modal>
     <div class="uk-modal-dialog">
         <button class="uk-modal-close-default" type="button" uk-close></button>
         <div class="uk-modal-header">
@@ -228,7 +267,7 @@
         <div class="uk-modal-body">
             <div class="uk-grid-small" uk-grid>
                 <div class="uk-width-1-2">
-                    <ul id="submit_debt_request_data" class="uk-list uk-text-small uk-text-break">
+                    <ul id="process_loan" class="uk-list uk-text-small uk-text-break">
                     </ul>
                 </div>
                 <div class="uk-width-1-2">
@@ -240,8 +279,9 @@
             </div>
         </div>
         <div class="uk-modal-footer uk-text-right">
-            <button id="lender_submit_allowances" class="uk-button uk-button-primary" type="button">Submit Allowances</button>
-            <button id="lender_submit_debt_request" class="uk-button uk-button-secondary" type="button">Submit Loan</button>
+            <button id="lender_approvals_modal_trigger" class="uk-button uk-button-primary" type="button">Allowances <span uk-icon="icon: info" uk-tooltip="Send transaction to allow protocol to transfer fees &amp; principal on your behalf"></span></button>
+            <button id="lender_submit_debt_request_call_locally" class="uk-button uk-button-primary" type="button">Simulate Locally <span uk-icon="icon: info" uk-tooltip="Run transaction on local node only to estimate outcome without spending gas or changing state"></span></button>
+            <button id="lender_submit_debt_request" class="uk-button uk-button-primary" type="button">Process Loan <span uk-icon="icon: info" uk-tooltip="Broadcast transaction to blockchain"></span></button>
         </div>
     </div>
 </div>
@@ -261,16 +301,16 @@
 
         //Contract ABIs
         var erc20Contract = web3.eth.contract([{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balances","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"_totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowed","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_from","type":"address"},{"indexed":true,"name":"_to","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_owner","type":"address"},{"indexed":true,"name":"_spender","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Approval","type":"event"}]);
-        var lendContract = web3.eth.contract([{"constant":false,"inputs":[{"name":"_requestID","type":"bytes32"}],"name":"approveCreditLineOffer","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_loanAddresses","type":"address[8]"},{"name":"_loanValues","type":"uint256[15]"},{"name":"_amountToLend","type":"uint256"},{"name":"_lendeeSig","type":"bytes"},{"name":"_underwriterSig","type":"bytes"},{"name":"_guarantorSig","type":"bytes"},{"name":"_lenderLoanOptions","type":"bool[1]"}],"name":"submitDebtAgreement","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"GAS_LIMIT","outputs":[{"name":"","type":"uint16"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_token","type":"address"},{"name":"_owner","type":"address"}],"name":"getAllowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"deprecated","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"protocolToken","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"unlockContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"numerator","type":"uint256"},{"name":"denominator","type":"uint256"},{"name":"target","type":"uint256"}],"name":"validRounding","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[{"name":"debtHash","type":"bytes32"},{"name":"amountToForgive","type":"uint256"}],"name":"forgiveDebt","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"debtHash","type":"bytes32"}],"name":"getPrincipal","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"debtHash","type":"bytes32"}],"name":"getOutstandingDebt","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"lockContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_loanAddresses","type":"address[8]"},{"name":"_loanValues","type":"uint256[15]"}],"name":"getDebtHash","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[{"name":"_requestID","type":"bytes32"},{"name":"_newOwner","type":"uint256"}],"name":"transferDebtOwnership","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_requestor","type":"address"}],"name":"getInterestAccrued","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"externalStorage","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_signer","type":"address"},{"name":"_debtHash","type":"bytes32"},{"name":"_sig","type":"bytes"}],"name":"validSignature","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"numerator","type":"uint256"},{"name":"denominator","type":"uint256"},{"name":"target","type":"uint256"}],"name":"getPartialAmount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[],"name":"tokenRegistry","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"submitCollateralizedDebtRequest","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"paymentHandler","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"locked","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_token","type":"address"},{"name":"_owner","type":"address"}],"name":"getBalance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_requestID","type":"bytes32"}],"name":"keyExists","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"deprecateContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"initiateSecondaryDebtSale","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"VERSION","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_protocolToken","type":"address"},{"name":"_storage","type":"address"},{"name":"_paymentHandler","type":"address"},{"name":"_tokenRegistry","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"errorCode","type":"uint8"},{"indexed":true,"name":"debtHash","type":"bytes32"}],"name":"LogError","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"version","type":"address"}],"name":"DeprecatedEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"version","type":"address"},{"indexed":true,"name":"nextVersion","type":"address"},{"indexed":false,"name":"prevVersion","type":"address"},{"indexed":true,"name":"reasonCode","type":"uint8"}],"name":"LockedEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"lendee","type":"address"},{"indexed":true,"name":"lender","type":"address"},{"indexed":false,"name":"agent","type":"address"},{"indexed":false,"name":"underwriter","type":"address"},{"indexed":false,"name":"lenderAmount","type":"uint256"},{"indexed":false,"name":"remaining","type":"uint256"}],"name":"DebtAgreementEvent","type":"event"}]);
+        var lendContract = web3.eth.contract([{"constant":false,"inputs":[{"name":"_requestID","type":"bytes32"}],"name":"approveCreditLineOffer","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_loanAddresses","type":"address[8]"},{"name":"_loanValues","type":"uint256[15]"},{"name":"_amountToLend","type":"uint256"},{"name":"_lendeeSig","type":"bytes"},{"name":"_underwriterSig","type":"bytes"},{"name":"_guarantorSig","type":"bytes"},{"name":"_lenderLoanOptions","type":"bool[1]"}],"name":"submitDebtAgreement","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"GAS_LIMIT","outputs":[{"name":"","type":"uint16"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_token","type":"address"},{"name":"_owner","type":"address"}],"name":"getAllowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"deprecated","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"protocolToken","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"unlockContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"numerator","type":"uint256"},{"name":"denominator","type":"uint256"},{"name":"target","type":"uint256"}],"name":"validRounding","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[{"name":"debtHash","type":"bytes32"},{"name":"amountToForgive","type":"uint256"}],"name":"forgiveDebt","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"debtHash","type":"bytes32"}],"name":"getPrincipal","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"debtHash","type":"bytes32"}],"name":"getOutstandingDebt","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"lockContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_loanAddresses","type":"address[8]"},{"name":"_loanValues","type":"uint256[15]"}],"name":"getDebtHash","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[{"name":"_requestID","type":"bytes32"},{"name":"_newOwner","type":"uint256"}],"name":"transferDebtOwnership","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_requestor","type":"address"}],"name":"getInterestAccrued","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"externalStorage","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_signer","type":"address"},{"name":"_debtHash","type":"bytes32"},{"name":"_sig","type":"bytes"}],"name":"validSignature","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"numerator","type":"uint256"},{"name":"denominator","type":"uint256"},{"name":"target","type":"uint256"}],"name":"getPartialAmount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[],"name":"tokenRegistry","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"submitCollateralizedDebtRequest","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"paymentHandler","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"locked","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_token","type":"address"},{"name":"_owner","type":"address"}],"name":"getBalance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_requestID","type":"bytes32"}],"name":"keyExists","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"deprecateContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"initiateSecondaryDebtSale","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"VERSION","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_protocolToken","type":"address"},{"name":"_storage","type":"address"},{"name":"_paymentHandler","type":"address"},{"name":"_tokenRegistry","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"output","type":"uint256"}],"name":"LogTestValue","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"errorCode","type":"uint8"},{"indexed":true,"name":"debtHash","type":"bytes32"}],"name":"LogError","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"version","type":"address"}],"name":"DeprecatedEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"version","type":"address"},{"indexed":true,"name":"nextVersion","type":"address"},{"indexed":false,"name":"prevVersion","type":"address"},{"indexed":true,"name":"reasonCode","type":"uint8"}],"name":"LockedEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"lendee","type":"address"},{"indexed":true,"name":"lender","type":"address"},{"indexed":false,"name":"agent","type":"address"},{"indexed":false,"name":"underwriter","type":"address"},{"indexed":false,"name":"lenderAmount","type":"uint256"},{"indexed":false,"name":"remaining","type":"uint256"}],"name":"DebtAgreementEvent","type":"event"}]);
 
         //Contract Objects
-        protocolToken = erc20Contract.at('0xf12b5dd4ead5f743c6baa640b0216200e89b60da');
-        lendx = lendContract.at('0x78f417302de7d49046688e4e39807e6addc47877');
+        protocolToken = erc20Contract.at('0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f');
+        lendx = lendContract.at('0xf204a4ef082f5c04bb89f7d5e6568b796096735a');
 
         var tokenRegistry = [
-            '0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f',
-            '0xbbe595df857805ab3734f15be990f9a30cbb89f3',
-            '0xf12b5dd4ead5f743c6baa640b0216200e89b60da'
+            '0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4',
+            '0x9fbda871d559710256a2502a2517b794b482db40',
+            '0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f'
         ];
 
         $(function(){
@@ -319,7 +359,7 @@
                     protocolToken.balanceOf(web3.eth.defaultAccount, function(err, erc20Balance){
                         erc20BalanceETH = $.number(Number(erc20Balance.div(divisor)), 10);
                         var percentOwned = Number(erc20Balance.div(totalSupply).mul(100));
-                        $("#protocol_lendee_balance").append(erc20BalanceETH +" ("+percentOwned+"%)");
+                        $("#protocol_lendee_balance").append(erc20BalanceETH +" ("+$.number(percentOwned,5)+"%)");
                     });
                 });
             });
@@ -367,15 +407,49 @@
 
 
             //Watch Protocol Events
+            var LogTestValue = lendx.LogTestValue({}, {fromBlock: 0, toBlock: 'latest'});
+            LogTestValue.watch(function(err, res){
+                console.log(res);
+                 $("#logs").prepend('<li>'+res.event+' ('+res.logIndex+') '+web3.fromWei(res.args.output,'ether')+'</li>');
+            });
             var LogError = lendx.LogError({}, {fromBlock: 0, toBlock: 'latest'});
-            LogError.watch(function(error, result){
-               if (!error){
-                    console.log(result);
-                    $("#logs").prepend('<li>'+result.event+'</li>');
+            LogError.watch(function(err, res){
+               if (!err){
+                    console.log(res);
+                    var errorCode = [
+                        "AGREEMENT_EXPIRED",
+                        "LOAN_FILLED",
+                        "ROUNDING_ERROR_TOO_LARGE",
+                        "INSUFFICIENT_BALANCE_OR_ALLOWANCE",
+                        "lENDER_PARTIAL_LOAN_NOT_ALLOWABLE"
+                    ];
+                    $("#logs").prepend('<li>'+res.event+' ('+res.logIndex+') '+errorCode[String(res.args.errorCode)]+'</li>');
                 }
             });
 
+            //Watch Transactions
+            // var txFilter = web3.eth.filter('latest');
+            // txFilter.watch(function(err, blockHash){
+            //     if (!err) {
+            //         var block = web3.eth.getBlock(blockHash, true);        
+            //         if (block.transactions.length > 0) {
+            //             for(i = 0; i < block.transactions.length; i++){
+            //                 if(block.transactions[i].from == web3.eth.accounts[0]){
+            //                     // console.log(block.transactions[i]);
+            //                     var txReceipt = web3.eth.getTransactionReceipt(block.transactions[i].hash);
+            //                     console.log(txReceipt);
+            //                     console.log((txReceipt.status == '0x00' ? 'error' : 'valid'));
+            //                 }
+            //             }
+            //         }
+            //     } else {
+            //         console.log('txFilter Error: '+err);
+            //     }
+            // });
+
+
             debtRequests = {};
+
 
             $("#lendee_sign_debt_request").on('click', function(){
                 var debtRequest = {};
@@ -395,7 +469,7 @@
                 debtInquiry.lender = (web3.isAddress(formInquiryData.lender) ? formInquiryData.lender : web3.toHex(0));
                 debtInquiry.principalToken = formInquiryData.principalToken;
                 debtInquiry.principalAmount = (formInquiryData.principalAmount ? web3.toWei(formInquiryData.principalAmount.replace(/,/g , ''), 'ether') : 0);
-                debtInquiry.loanStart = (moment(formInquiryData.loanStart, 'DD-MM-YYYY HH:mm', true).isValid() ? moment.tz(formInquiryData.loanStart, 'DD-MM-YYYY HH:mm', true, $("#timezone").val()).valueOf() : 0);
+                debtInquiry.loanStart = (moment(formInquiryData.loanStart, 'DD-MM-YYYY HH:mm', true).isValid() ? moment.tz(formInquiryData.loanStart, 'DD-MM-YYYY HH:mm', true, $("#timezone").val()).unix() : 0);
                 debtInquiry.salt = pseudoRandomNumber();
                 //Terms
                 debtTerms.underwriter = (web3.isAddress(formTermsData.underwriter) ? formTermsData.underwriter : web3.toHex(0));
@@ -408,7 +482,7 @@
                 debtTerms.collateralToken = (web3.isAddress(formTermsData.collateralToken) ? formTermsData.collateralToken : web3.toHex(0));
                 debtTerms.collateralAmount = (formTermsData.collateralAmount ? web3.toWei(formTermsData.collateralAmount.replace(/,/g , ''), 'ether') : 0);
                 debtTerms.defaultPeriod = (formTermsData.loanDefaultPeriod ? parseInt(formTermsData.loanDefaultPeriod) : 0);
-                debtTerms.expires = (moment(formTermsData.expires, 'DD-MM-YYYY HH:mm', true).isValid() ? moment.tz(formTermsData.expires, 'DD-MM-YYYY HH:mm', true, $("#timezone").val()).valueOf() : 0);
+                debtTerms.expires = (moment(formTermsData.expires, 'DD-MM-YYYY HH:mm', true).isValid() ? moment.tz(formTermsData.expires, 'DD-MM-YYYY HH:mm', true, $("#timezone").val()).unix() : 0);
                 //Guarantor
                 debtGuarantor.guarantor =  (web3.isAddress(formGuarantorData.guarantor) ? formGuarantorData.guarantor : web3.toHex(0));
                 debtGuarantor.guarantorFee =  (formGuarantorData.guarantorFee ? web3.toWei(formGuarantorData.guarantorFee.replace(/,/g , ''), 'ether') : 0);
@@ -436,10 +510,9 @@
 
                                             var principalToken = erc20Contract.at(debtInquiry.principalToken);
                                             principalToken.symbol(function(err, symbol){
-                                                $("#market_data").prepend('<li><a id="'+String(hash)+'" href="debt_request_data">'+symbol+' - '+web3.fromWei(debtInquiry.principalAmount,'ether')+'</a><a id="'+String(hash)+'" href="submit_debt_request_data" class="uk-button uk-button-default uk-button-small uk-margin-left">Lend</a></li>');
+                                                $("#market_data").prepend('<li><a id="'+String(hash)+'" href="debt_request_data">'+symbol+' - '+web3.fromWei(debtInquiry.principalAmount,'ether')+'</a><a id="'+String(hash)+'" href="process_loan" class="uk-button uk-button-default uk-button-small uk-margin-left">Lend</a></li>');
                                             });
                                             debtRequests[String(hash)] = debtRequest;
-                                            UIkit.notification("Request Successfully Signed", {pos: 'top-right', timeout: '1000'});
                                         } else {
                                             console.log('ECRecovery Invalid');
                                         }
@@ -485,14 +558,14 @@
                         });
                         UIkit.modal("#debt_request_message").show();
                     break;
-                    case 'submit_debt_request_data':
-                        $("#submit_debt_request_data").empty();
+                    case 'process_loan':
+                        $("#process_loan").empty();
                         $.each(debtRequests[e.target.id], function(key, value){
-                            $("#submit_debt_request_data").append('<li>'+key+':'+value+'</li>');
+                            $("#process_loan").append('<li>'+key+':'+value+'</li>');
                         });
                         //attach html5 data-attribute to Lender Submit Buttons
-                        $("#lender_submit_allowances, #lender_submit_debt_request").data("target",e.target.id);
-                        UIkit.modal("#submit_debt_request").show();
+                        $("#lender_approvals_modal_trigger, #lender_submit_approvals, #lender_submit_debt_request, #lender_submit_debt_request_call_locally").data("target",e.target.id);
+                        UIkit.modal("#process_loan_modal").show();
                     break;
                     default:
                         console.log('Error');
@@ -501,30 +574,74 @@
             });
 
         });
-        
-        $("#lender_submit_allowances").on('click', function(){
 
+        $("#lendee_approvals_modal_trigger, #lender_approvals_modal_trigger").on('click', function(){
+            switch($(this).attr('id')){
+                case 'lendee_approvals_modal_trigger':
+
+                    UIkit.modal("#lendee_approvals_modal").show();
+                break;
+                case 'lender_approvals_modal_trigger':
+
+                    UIkit.modal("#lender_approvals_modal").show();
+                break;
+            }
+        });
+        
+        $("#lendee_submit_approvals").on('click', function(){
+            var protocolTokenFees = {};
+            var principalTokenFees = {};
+                
+            var formInquiryData = $("#debt_inquiry_data").serializeJSON();
+            var formTermsData = $("#terms_data").serializeJSON();
+            var formGuarantorData = $("#guarantor_data").serializeJSON();
+            var formAgentData = $("#agent_data").serializeJSON();
+
+            //convert to big number for arithmetic
+            protocolTokenFees.originationFee = web3.toBigNumber((formTermsData.originationFee ? web3.toWei(formTermsData.originationFee.replace(/,/g , ''), 'ether') : 0));
+            protocolTokenFees.guarantorFee = web3.toBigNumber((formGuarantorData.guarantorFee ? web3.toWei(formGuarantorData.guarantorFee.replace(/,/g , ''), 'ether') : 0));
+            protocolTokenFees.lendeeAgentFee = web3.toBigNumber((formAgentData.lendeeAgentFee ? web3.toWei(formAgentData.lendeeAgentFee.replace(/,/g , ''), 'ether') : 0));
+
+            console.log(protocolTokenFees);
         });
 
-        $("#lender_submit_debt_request").on('click', function(){
+        $("#lender_submit_approvals").on('click', function(){
+            var debtRequest = debtRequests[$(this).data('target')];
+
+            if(debtRequest.principalToken == protocolToken.address){
+                console.log(web3.toBigNumber(debtRequest.lenderAgentFee).plus(web3.toBigNumber(debtRequest.principalAmount)));
+            } else {
+
+            }
+        });
+
+        $("#lender_submit_debt_request, #lender_submit_debt_request_call_locally").on('click', function(){
             var formLenderData = $("#lender_data").serializeJSON();
             var amountToLend = (formLenderData.amountToLend ? web3.toWei(formLenderData.amountToLend.replace(/,/g , ''), 'ether') : 0);
             var lenderLoanOptions = [];
             lenderLoanOptions[0] = ($("input[name=lenderLoanOptions]").prop('checked') && $("input[name=lenderLoanOptions]:checked")[0].value == 'allowPartialLoan' ? true : false);
             var debtRequest = debtRequests[$(this).data('target')];
             var debtRequestArgs = processDebtRequestArgsForContract(debtRequest);
-            
-            lendx.submitDebtAgreement(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, tx){
-                if(!err){
-                    console.log(tx);
-                    console.log(web3.eth.getTransaction(tx));
-                    var txReceipt = web3.eth.getTransactionReceipt(tx);
-                    console.log(txReceipt);
-                    console.log((txReceipt.status == '0x00' ? 'error' : 'valid'));
-                } else {
-                    console.log('Error: '+err);
-                }
-            });
+
+            if($(this).attr('id') == 'lender_submit_debt_request'){
+                lendx.submitDebtAgreement(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, tx){
+                    if(!err){
+                        console.log(tx);
+                        UIkit.notification("Transaction Sent", {pos: 'top-right', timeout: '1000'});
+                    } else {
+                        console.log('Error: '+err);
+                    }
+                });
+            } else {
+                lendx.submitDebtAgreement.call(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, res){
+                    if(!err){
+                        console.log(res);
+                        UIkit.notification("Response: "+res, {pos: 'top-right', timeout: '1000'});
+                    } else {
+                        console.log(JSON.stringify(err));
+                    }
+                });
+            }
         });
 
         function processDebtRequestArgsForContract(debtRequest){
