@@ -162,14 +162,14 @@
                     <form id="terms_data" class="uk-grid-small" uk-grid>
                         <div class="uk-width-1-1@s"><label class="uk-form-label">Underwriter</label><input class="uk-input" type="text" name="underwriter" placeholder="Address"></div>
                         <div class="uk-width-1-2@s"><label class="uk-form-label">Origination Fee</label><input class="uk-input" type="text" name="originationFee" placeholder="Amount (Lend-X)"></div>
-                        <div class="uk-width-1-2@s"><label class="uk-form-label">Loan Term</label><input class="uk-input" type="text" name="loanTerm" placeholder="# of Blocks"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Loan Term (<span id="loan_term_translation"></span>)</label><input id="loan_term" class="uk-input" type="text" name="loanTerm" placeholder="# of Blocks"></div>
                         <div class="uk-width-1-2@s"><label class="uk-form-label">Periodic Interest Rate (<span id="periodic_interest_rate_percent"></span>)</label><input id="periodic_interest_rate" class="uk-input" type="text" name="periodicInterestRate" placeholder=".043"></div>
                         <div class="uk-width-1-2@s"><label class="uk-form-label">Payment Amount</label><input class="uk-input" type="text" name="paymentAmount" placeholder="Amount (Principal Token)"></div>
-                        <div class="uk-width-1-2@s"><label class="uk-form-label">Payment Interval</label><input class="uk-input" type="text" name="paymentInterval" placeholder="# of Blocks"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Payment Interval (<span id="payment_interval_translation"></span>)</label><input id="payment_interval" class="uk-input" type="text" name="paymentInterval" placeholder="# of Blocks"></div>
                         <div class="uk-width-1-2@s"><label class="uk-form-label">Late Fee</label><input class="uk-input" type="text" name="lateFee" placeholder="Amount (Principal Token)"></div>
                         <div class="uk-width-1-2@s"><label class="uk-form-label">Collateral Token</label><input class="uk-input" type="text" name="collateralToken" placeholder="Address"></div>
                         <div class="uk-width-1-2@s"><label class="uk-form-label">Collateral Amount</label><input class="uk-input" type="text" name="collateralAmount" placeholder="Amount"></div>
-                        <div class="uk-width-1-2@s"><label class="uk-form-label">Default Period</label><input class="uk-input" type="text" name="defaultPeriod" placeholder="# of Blocks"></div>
+                        <div class="uk-width-1-2@s"><label class="uk-form-label">Default Period (<span id="default_period_translation"></span>)</label><input id="default_period" class="uk-input" type="text" name="defaultPeriod" placeholder="# of Blocks"></div>
                         <div class="uk-width-1-2@s"><label class="uk-form-label">Expires</label><input class="uk-input" type="text" name="expires" placeholder="Unix Timestamp" data-field="datetime"></div>
                     </form>
                     <hr />
@@ -320,6 +320,12 @@
             $('#periodic_interest_rate').number(true, 3);
             $('#periodic_interest_rate').keyup(function(){
                 $('#periodic_interest_rate_percent').text($.number($(this).val()/100, 5));
+            });
+            $('#loan_term, #payment_interval, #default_period').keyup(function(){
+                var secondsPerBlockMined = 14;
+                var seconds = $(this).val()*secondsPerBlockMined;
+                var days = seconds/86400;
+                $('#'+$(this).attr('id')+'_translation').text($.number(days, 2)+' days');
             });
 
             if(!web3.isConnected()){
@@ -583,12 +589,15 @@
                     var allowances = getLendeeAllowances();
                     $("#lendee_approvals_data").empty();
                     $("#lendee_approvals_data").append('<li># of Payments: '+Math.ceil(allowances.numPayments)+'</li>');
-                    $("#lendee_approvals_data").append('<li>Total Repayment: '+allowances.totalRepayment+'<br>'+'</li>');
-                    $("#lendee_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'<br>'+'</li>');
+                    $("#lendee_approvals_data").append('<li>Total Repayment: '+allowances.totalRepayment+'</li>');
+                    $("#lendee_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'</li>');
                     UIkit.modal("#lendee_approvals_modal").show();
                 break;
                 case 'lender_approvals_modal_trigger':
-
+                    var allowances = getLenderAllowances();
+                    $("#lender_approvals_data").empty();
+                    $("#lender_approvals_data").append('<li>Loan Amount: '+allowances.amountToLend+'</li>');
+                    $("#lender_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'</li>');
                     UIkit.modal("#lender_approvals_modal").show();
                 break;
             }
@@ -600,7 +609,11 @@
         });
 
         $("#lender_submit_approvals").on('click', function(){
+            if(debtRequest.principalToken == protocolToken.address){
+                $("#lender_approvals_data").append('<li></li>');
+            } else {
 
+            }
         });
 
         function getLendeeAllowances(){
@@ -630,21 +643,18 @@
                 allowances.totalRepayment = web3.toBigNumber(principalAmount);
                 allowances.protocolFees = web3.toBigNumber(originationFee).plus(web3.toBigNumber(guarantorFee)).plus(web3.toBigNumber(lendeeAgentFee));
             }
-
+            //need another condition for simple interest when the Lendee option is included
             return allowances;
         }
 
         function getLenderAllowances(){
-            var debtRequest = debtRequests[$(this).data('target')];
+            var debtRequest = debtRequests[$("#lender_approvals_modal_trigger").data('target')];
+            var formLenderData = $("#lender_data").serializeJSON();
+            var allowances = {};
 
-            if(debtRequest.principalToken == protocolToken.address){
-                //web3.fromWei(debtRequest.principalAmount,'ether');
-                $("#lender_approvals_data").append('<li></li>');
-            } else {
-
-            }
-
-            return;
+            allowances.amountToLend = web3.toBigNumber((formLenderData.amountToLend ? formLenderData.amountToLend.replace(/,/g , '') : 0));
+            allowances.protocolFees = web3.fromWei(web3.toBigNumber(debtRequest.lenderAgentFee),'ether');
+            return allowances;
         }
 
         $("#lender_submit_debt_request, #lender_submit_debt_request_call_locally").on('click', function(){
