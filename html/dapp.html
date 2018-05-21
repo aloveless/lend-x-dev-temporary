@@ -656,10 +656,12 @@
             var paymentAmount = (formTermsData.paymentAmount ? formTermsData.paymentAmount.replace(/,/g , '') : 0);
             var periodicInterestRate = (formTermsData.periodicInterestRate ? formTermsData.periodicInterestRate.replace(/,/g , '') : 0);
 
-            protocolToken.allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
-                allowances.currentProtocolTokenAllowance = res;
-                erc20Contract.at(principalToken).allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
-                    allowances.currentPrincipalTokenAllowance = res;
+            protocolToken.allowance(web3.eth.accounts[0], paymentHandler, function(err, res){
+                console.log('Current Protocol Token Allowance: '+res.toString());
+                allowances.currentProtocolTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
+                erc20Contract.at(principalToken).allowance(web3.eth.accounts[0], paymentHandler, function(err, res){
+                    console.log('Current Principal Token Allowance: '+res.toString());
+                    allowances.currentPrincipalTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
                     //Fixed Payment Loan
                     //# of payments = (-1*Math.log(1-((principal/payment amount)*(periodic interest rate/100))))/Math.log(1+(periodic interest rate/100))
                     if(formTermsData.periodicInterestRate > 0){
@@ -687,9 +689,9 @@
             var allowances = {};
 
             protocolToken.allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
-                allowances.currentProtocolTokenAllowance = res;
+                allowances.currentProtocolTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
                 erc20Contract.at(debtRequest.principalToken).allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
-                    allowances.currentPrincipalTokenAllowance = res;
+                    allowances.currentPrincipalTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
                     
                     allowances.amountToLend = web3.toBigNumber((formLenderData.amountToLend ? formLenderData.amountToLend.replace(/,/g , '') : 0));
                     allowances.protocolFees = web3.fromWei(web3.toBigNumber(debtRequest.lenderAgentFee),'ether');
