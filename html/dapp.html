@@ -308,10 +308,11 @@
         //Contract Objects
         protocolToken = erc20Contract.at('0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f');
         lendx = lendContract.at('0xf204a4ef082f5c04bb89f7d5e6568b796096735a');
+        paymentHandler = '0xaa588d3737b611bafd7bd713445b314bd453a5c8';
 
         var tokenRegistry = [
-            '0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4',
             '0x9fbda871d559710256a2502a2517b794b482db40',
+            '0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4',
             '0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f'
         ];
 
@@ -586,37 +587,61 @@
         $("#lendee_approvals_modal_trigger, #lender_approvals_modal_trigger").on('click', function(){
             switch($(this).attr('id')){
                 case 'lendee_approvals_modal_trigger':
-                    var allowances = getLendeeAllowances();
-                    $("#lendee_approvals_data").empty();
-                    $("#lendee_approvals_data").append('<li># of Payments: '+Math.ceil(allowances.numPayments)+'</li>');
-                    $("#lendee_approvals_data").append('<li>Total Repayment: '+allowances.totalRepayment+'</li>');
-                    $("#lendee_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'</li>');
-                    UIkit.modal("#lendee_approvals_modal").show();
+                    getLendeeAllowances(function(allowances){
+                        $("#lendee_approvals_data").empty();
+                        $("#lendee_approvals_data").append('<li># of Payments: '+Math.ceil(allowances.numPayments)+'</li>');
+                        $("#lendee_approvals_data").append('<li>Total Repayment: '+allowances.totalRepayment+'</li>');
+                        $("#lendee_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'</li>');
+                        UIkit.modal("#lendee_approvals_modal").show();
+                    });
                 break;
                 case 'lender_approvals_modal_trigger':
-                    var allowances = getLenderAllowances();
-                    $("#lender_approvals_data").empty();
-                    $("#lender_approvals_data").append('<li>Loan Amount: '+allowances.amountToLend+'</li>');
-                    $("#lender_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'</li>');
-                    UIkit.modal("#lender_approvals_modal").show();
+                    getLenderAllowances(function(allowances){
+                        $("#lender_approvals_data").empty();
+                        $("#lender_approvals_data").append('<li>Loan Amount: '+allowances.amountToLend+'</li>');
+                        $("#lender_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'</li>');
+                        UIkit.modal("#lender_approvals_modal").show();
+                    });
                 break;
             }
         });
 
-        $("#lendee_submit_approvals").on('click', function(){
-            //if principal token is also the protocol token, combine approval into 1 transaction 
-
-        });
-
-        $("#lender_submit_approvals").on('click', function(){
-            if(debtRequest.principalToken == protocolToken.address){
-                $("#lender_approvals_data").append('<li></li>');
-            } else {
-
+        $("#lendee_submit_approvals, #lender_submit_approvals").on('click', function(){
+            switch($(this).attr('id')){
+                case 'lendee_submit_approvals':
+                    getLendeeAllowances(function(allowances){
+                        if(allowances.principalToken == protocolToken.address){
+                            var approval = allowances.currentProtocolTokenAllowance.plus(allowances.totalRepayment.plus(allowances.protocolFees));
+                            protocolToken.approve(paymentHandler, web3.toWei(approval,'ether'), function(err, tx){
+                                if(!err){
+                                    console.log(tx);
+                                    UIkit.notification("Approval Sent", {pos: 'top-right', timeout: '2000'});
+                                } else { console.log(JSON.stringify(err)); }
+                            });
+                        } else {
+                            protocolToken.approve(paymentHandler, web3.toWei(allowances.currentProtocolTokenAllowance.plus(allowances.protocolFees),'ether'), function(err, tx){
+                                if(!err){
+                                    console.log(tx);
+                                    erc20Contract.at(allowances.principalToken).approve(paymentHandler, web3.toWei(allowances.currentPrincipalTokenAllowance.plus(allowances.totalRepayment), 'ether'), function(err, tx){
+                                        if(!err){
+                                            console.log(tx);
+                                            UIkit.notification("Approvals Sent", {pos: 'top-right', timeout: '2000'});
+                                        } else { console.log(JSON.stringify(err)); }
+                                    });
+                                } else { console.log(JSON.stringify(err)); }
+                            });
+                        }
+                    });
+                break;
+                case 'lender_submit_approvals':
+                    // getLenderAllowances(function(allowances){
+                    //     allowances.protocolFees;
+                    // });
+                break;
             }
         });
 
-        function getLendeeAllowances(){
+        function getLendeeAllowances(callback){
             var allowances = {};
             var formInquiryData = $("#debt_inquiry_data").serializeJSON();
             var formTermsData = $("#terms_data").serializeJSON();
@@ -627,34 +652,50 @@
             var guarantorFee = (formGuarantorData.guarantorFee ? formGuarantorData.guarantorFee.replace(/,/g , '') : 0);
             var lendeeAgentFee = (formAgentData.lendeeAgentFee ? formAgentData.lendeeAgentFee.replace(/,/g , '') : 0);
             var principalAmount = (formInquiryData.principalAmount ? formInquiryData.principalAmount.replace(/,/g , '') : 0);
+            var principalToken = formInquiryData.principalToken;
             var paymentAmount = (formTermsData.paymentAmount ? formTermsData.paymentAmount.replace(/,/g , '') : 0);
             var periodicInterestRate = (formTermsData.periodicInterestRate ? formTermsData.periodicInterestRate.replace(/,/g , '') : 0);
 
-            //Fixed Payment Loan
-            //# of payments = (-1*Math.log(1-((principal/payment amount)*(periodic interest rate/100))))/Math.log(1+(periodic interest rate/100))
-            if(formTermsData.periodicInterestRate > 0){
-                //compound interest
-                allowances.numPayments = ((web3.toBigNumber(-1).mul(web3.toBigNumber(Math.log(web3.toBigNumber(1).minus(((web3.toBigNumber(principalAmount).div(web3.toBigNumber(paymentAmount))).mul(web3.toBigNumber(periodicInterestRate/100)))))))).div(web3.toBigNumber(Math.log(1+(periodicInterestRate/100)))));
-                allowances.totalRepayment = allowances.numPayments.mul(web3.toBigNumber(paymentAmount));
-                allowances.protocolFees = web3.toBigNumber(originationFee).plus(web3.toBigNumber(guarantorFee)).plus(web3.toBigNumber(lendeeAgentFee));
-            } else {
-                //no interest
-                allowances.numPayments = web3.toBigNumber(principalAmount).div(web3.toBigNumber(paymentAmount));
-                allowances.totalRepayment = web3.toBigNumber(principalAmount);
-                allowances.protocolFees = web3.toBigNumber(originationFee).plus(web3.toBigNumber(guarantorFee)).plus(web3.toBigNumber(lendeeAgentFee));
-            }
-            //need another condition for simple interest when the Lendee option is included
-            return allowances;
+            protocolToken.allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
+                allowances.currentProtocolTokenAllowance = res;
+                erc20Contract.at(principalToken).allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
+                    allowances.currentPrincipalTokenAllowance = res;
+                    //Fixed Payment Loan
+                    //# of payments = (-1*Math.log(1-((principal/payment amount)*(periodic interest rate/100))))/Math.log(1+(periodic interest rate/100))
+                    if(formTermsData.periodicInterestRate > 0){
+                        //compound interest
+                        allowances.numPayments = ((web3.toBigNumber(-1).mul(web3.toBigNumber(Math.log(web3.toBigNumber(1).minus(((web3.toBigNumber(principalAmount).div(web3.toBigNumber(paymentAmount))).mul(web3.toBigNumber(periodicInterestRate/100)))))))).div(web3.toBigNumber(Math.log(1+(periodicInterestRate/100)))));
+                        allowances.totalRepayment = allowances.numPayments.mul(web3.toBigNumber(paymentAmount));
+                        allowances.protocolFees = web3.toBigNumber(originationFee).plus(web3.toBigNumber(guarantorFee)).plus(web3.toBigNumber(lendeeAgentFee));
+                        allowances.principalToken = principalToken;
+                    } else {
+                        //no interest
+                        allowances.numPayments = web3.toBigNumber(principalAmount).div(web3.toBigNumber(paymentAmount));
+                        allowances.totalRepayment = web3.toBigNumber(principalAmount);
+                        allowances.protocolFees = web3.toBigNumber(originationFee).plus(web3.toBigNumber(guarantorFee)).plus(web3.toBigNumber(lendeeAgentFee));
+                        allowances.principalToken = principalToken;
+                    }
+                    //need another condition for simple interest when the Lendee option is included
+                    callback(allowances);
+                });
+            });
         }
 
-        function getLenderAllowances(){
+        function getLenderAllowances(callback){
             var debtRequest = debtRequests[$("#lender_approvals_modal_trigger").data('target')];
             var formLenderData = $("#lender_data").serializeJSON();
             var allowances = {};
 
-            allowances.amountToLend = web3.toBigNumber((formLenderData.amountToLend ? formLenderData.amountToLend.replace(/,/g , '') : 0));
-            allowances.protocolFees = web3.fromWei(web3.toBigNumber(debtRequest.lenderAgentFee),'ether');
-            return allowances;
+            protocolToken.allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
+                allowances.currentProtocolTokenAllowance = res;
+                erc20Contract.at(debtRequest.principalToken).allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
+                    allowances.currentPrincipalTokenAllowance = res;
+                    
+                    allowances.amountToLend = web3.toBigNumber((formLenderData.amountToLend ? formLenderData.amountToLend.replace(/,/g , '') : 0));
+                    allowances.protocolFees = web3.fromWei(web3.toBigNumber(debtRequest.lenderAgentFee),'ether');
+                    callback(allowances);
+                });
+            });
         }
 
         $("#lender_submit_debt_request, #lender_submit_debt_request_call_locally").on('click', function(){
@@ -665,24 +706,23 @@
             var debtRequest = debtRequests[$(this).data('target')];
             var debtRequestArgs = processDebtRequestArgsForContract(debtRequest);
 
-            if($(this).attr('id') == 'lender_submit_debt_request'){
-                lendx.submitDebtAgreement(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, tx){
-                    if(!err){
-                        console.log(tx);
-                        UIkit.notification("Transaction Sent", {pos: 'top-right', timeout: '1000'});
-                    } else {
-                        console.log('Error: '+err);
-                    }
-                });
-            } else {
-                lendx.submitDebtAgreement.call(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, res){
-                    if(!err){
-                        console.log(res);
-                        UIkit.notification("Response: "+res, {pos: 'top-right', timeout: '1000'});
-                    } else {
-                        console.log(JSON.stringify(err));
-                    }
-                });
+            switch($(this).attr('id')){
+                case 'lender_submit_debt_request':
+                    lendx.submitDebtAgreement(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, tx){
+                        if(!err){
+                            console.log(tx);
+                            UIkit.notification("Transaction Sent", {pos: 'top-right', timeout: '2000'});
+                        } else { console.log(JSON.stringify(err)); }
+                    });
+                break;
+                case 'lender_submit_debt_request_call_locally':
+                    lendx.submitDebtAgreement.call(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, res){
+                        if(!err){
+                            console.log(res);
+                            UIkit.notification("Response: "+res, {pos: 'top-right', timeout: '2000'});
+                        } else { console.log(JSON.stringify(err)); }
+                    });
+                break;
             }
         });
 
@@ -722,7 +762,6 @@
         //Implements Javascript Cryptography API: https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
         //** Look into properly seeding
         function pseudoRandomNumber(seed){
-            //const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             const validChars = '0123456789'; //numbers only
             let uintArray = new Uint8Array(32);
             window.crypto.getRandomValues(uintArray);
