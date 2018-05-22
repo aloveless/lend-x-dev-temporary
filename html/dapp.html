@@ -317,7 +317,7 @@
         ];
 
         $(function(){
-            $("#DateTimeBox").DateTimePicker();
+            $("#DateTimeBox").DateTimePicker({dateTimeFormat: 'MM-dd-yyyy hh:mm'});
             $('#periodic_interest_rate').number(true, 3);
             $('#periodic_interest_rate').keyup(function(){
                 $('#periodic_interest_rate_percent').text($.number($(this).val()/100, 5));
@@ -344,9 +344,17 @@
                     web3.eth.getTransactionCount(web3.eth.accounts[key], function(err, res){
                         var txCount = res;
                         var nonce = web3.toHex(txCount);
-                        $("#address_select").append('<li><span class="uk-label uk-label-success uk-inline">'+balance+'</span><a class="account_list" id="'+web3.eth.accounts[key]+'">'+web3.eth.accounts[key]+'</a><span>Tx Count ('+txCount+') Nonce ('+nonce+')</span></li><hr />');
+                        $("#address_select").append('<li>'+(key == 0 ? '<span id="default_account" class="uk-label uk-label-warning uk-margin-small-right">Default</span>' : '')+'<span class="uk-label uk-label-success uk-inline">'+balance+'</span><a class="account_list" id="'+web3.eth.accounts[key]+'">'+web3.eth.accounts[key]+'</a><span>Tx Count ('+txCount+') Nonce ('+nonce+')</span></li><hr />');
                     });
                 });
+            });
+
+            //Change Default Accounts
+            $('body').on('click', '.account_list', function(e){
+                e.preventDefault();
+                $("#default_account").remove();
+                $(this).closest('li').prepend('<span id="default_account" class="uk-label uk-label-warning uk-margin-small-right">Default</span>');
+                web3.eth.defaultAccount = e.target.id;
             });
 
             //Protocol Contract
@@ -443,7 +451,7 @@
             //         var block = web3.eth.getBlock(blockHash, true);        
             //         if (block.transactions.length > 0) {
             //             for(i = 0; i < block.transactions.length; i++){
-            //                 if(block.transactions[i].from == web3.eth.accounts[0]){
+            //                 if(block.transactions[i].from == web3.eth.defaultAccount){
             //                     // console.log(block.transactions[i]);
             //                     var txReceipt = web3.eth.getTransactionReceipt(block.transactions[i].hash);
             //                     console.log(txReceipt);
@@ -459,7 +467,6 @@
 
             debtRequests = {};
 
-
             $("#lendee_sign_debt_request").on('click', function(){
                 var debtRequest = {};
                 var debtInquiry = {};
@@ -474,11 +481,11 @@
 
                 //Inquiry
                 debtInquiry.protocolAddress = lendx.address;
-                debtInquiry.lendee = web3.eth.accounts[0];
+                debtInquiry.lendee = web3.eth.defaultAccount;
                 debtInquiry.lender = (web3.isAddress(formInquiryData.lender) ? formInquiryData.lender : web3.toHex(0));
                 debtInquiry.principalToken = formInquiryData.principalToken;
                 debtInquiry.principalAmount = (formInquiryData.principalAmount ? web3.toWei(formInquiryData.principalAmount.replace(/,/g , ''), 'ether') : 0);
-                debtInquiry.loanStart = (moment(formInquiryData.loanStart, 'DD-MM-YYYY HH:mm', true).isValid() ? moment.tz(formInquiryData.loanStart, 'DD-MM-YYYY HH:mm', true, $("#timezone").val()).unix() : 0);
+                debtInquiry.loanStart = (moment(formInquiryData.loanStart, 'MM-DD-YYYY HH:mm', true).isValid() ? moment.tz(formInquiryData.loanStart, 'MM-DD-YYYY HH:mm', true, $("#timezone").val()).unix() : 0);
                 debtInquiry.salt = pseudoRandomNumber();
                 //Terms
                 debtTerms.underwriter = (web3.isAddress(formTermsData.underwriter) ? formTermsData.underwriter : web3.toHex(0));
@@ -491,7 +498,7 @@
                 debtTerms.collateralToken = (web3.isAddress(formTermsData.collateralToken) ? formTermsData.collateralToken : web3.toHex(0));
                 debtTerms.collateralAmount = (formTermsData.collateralAmount ? web3.toWei(formTermsData.collateralAmount.replace(/,/g , ''), 'ether') : 0);
                 debtTerms.defaultPeriod = (formTermsData.loanDefaultPeriod ? parseInt(formTermsData.loanDefaultPeriod) : 0);
-                debtTerms.expires = (moment(formTermsData.expires, 'DD-MM-YYYY HH:mm', true).isValid() ? moment.tz(formTermsData.expires, 'DD-MM-YYYY HH:mm', true, $("#timezone").val()).unix() : 0);
+                debtTerms.expires = (moment(formTermsData.expires, 'MM-DD-YYYY HH:mm', true).isValid() ? moment.tz(formTermsData.expires, 'MM-DD-YYYY HH:mm', true, $("#timezone").val()).unix() : 0);
                 //Guarantor
                 debtGuarantor.guarantor =  (web3.isAddress(formGuarantorData.guarantor) ? formGuarantorData.guarantor : web3.toHex(0));
                 debtGuarantor.guarantorFee =  (formGuarantorData.guarantorFee ? web3.toWei(formGuarantorData.guarantorFee.replace(/,/g , ''), 'ether') : 0);
@@ -510,9 +517,9 @@
                 lendx.getDebtHash(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, function(err, hash){
                     if(!err){
                         //web3.personal.sign(hash, web3.eth.accounts[0], function(err, sig){
-                        web3.eth.sign(web3.eth.accounts[0], hash, function(err, sig){
+                        web3.eth.sign(web3.eth.defaultAccount, hash, function(err, sig){
                             if(!err){
-                                lendx.validSignature(web3.eth.accounts[0], hash, sig, function(err, res){
+                                lendx.validSignature(web3.eth.defaultAccount, hash, sig, function(err, res){
                                     if(!err){
                                         if(res){
                                             debtInquiry.lendeeSig = String(sig);
@@ -558,10 +565,10 @@
                         $.each(debtRequests[e.target.id], function(key, value){
                             switch(key){
                                 case 'periodicInterestRate':
-                                    $("#debt_request_data").append('<li>'+key+':'+String(web3.fromWei(value,'ether'))+' ('+$.number(value/1000,3)+')</li>');
+                                    $("#debt_request_data").append('<li>'+key+': '+value+' ('+$.number(value/1000,3)+')</li>');
                                 break;
                                 default:
-                                    $("#debt_request_data").append('<li>'+key+':'+value+'</li>');
+                                    $("#debt_request_data").append('<li>'+key+': '+value+'</li>');
                                 break;
                             }
                         });
@@ -569,9 +576,10 @@
                     break;
                     case 'process_loan':
                         $("#process_loan").empty();
-                        $.each(debtRequests[e.target.id], function(key, value){
-                            $("#process_loan").append('<li>'+key+':'+value+'</li>');
-                        });
+                        var debtRequest = debtRequests[e.target.id];
+                        $("#process_loan").append('<li>Principal Amount: '+web3.fromWei(debtRequest.principalAmount,'ether')+'</li>');
+                        $("#process_loan").append('<li>Expires: '+moment.unix(debtRequest.expires).tz($("#timezone").val()).format('MM-DD-YYYY HH:mm')+'</li>');
+
                         //attach html5 data-attribute to Lender Submit Buttons
                         $("#lender_approvals_modal_trigger, #lender_submit_approvals, #lender_submit_debt_request, #lender_submit_debt_request_call_locally").data("target",e.target.id);
                         UIkit.modal("#process_loan_modal").show();
@@ -656,10 +664,10 @@
             var paymentAmount = (formTermsData.paymentAmount ? formTermsData.paymentAmount.replace(/,/g , '') : 0);
             var periodicInterestRate = (formTermsData.periodicInterestRate ? formTermsData.periodicInterestRate.replace(/,/g , '') : 0);
 
-            protocolToken.allowance(web3.eth.accounts[0], paymentHandler, function(err, res){
+            protocolToken.allowance(web3.eth.defaultAccount, paymentHandler, function(err, res){
                 console.log('Current Protocol Token Allowance: '+res.toString());
                 allowances.currentProtocolTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
-                erc20Contract.at(principalToken).allowance(web3.eth.accounts[0], paymentHandler, function(err, res){
+                erc20Contract.at(principalToken).allowance(web3.eth.defaultAccount, paymentHandler, function(err, res){
                     console.log('Current Principal Token Allowance: '+res.toString());
                     allowances.currentPrincipalTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
                     //Fixed Payment Loan
@@ -688,9 +696,9 @@
             var formLenderData = $("#lender_data").serializeJSON();
             var allowances = {};
 
-            protocolToken.allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
+            protocolToken.allowance(web3.eth.defaultAccount, paymentHandler, function(err, res){ 
                 allowances.currentProtocolTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
-                erc20Contract.at(debtRequest.principalToken).allowance(web3.eth.accounts[0], paymentHandler, function(err, res){ 
+                erc20Contract.at(debtRequest.principalToken).allowance(web3.eth.defaultAccount, paymentHandler, function(err, res){ 
                     allowances.currentPrincipalTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
                     
                     allowances.amountToLend = web3.toBigNumber((formLenderData.amountToLend ? formLenderData.amountToLend.replace(/,/g , '') : 0));
