@@ -397,12 +397,12 @@
             } else {
                 $("#provider").text(web3.currentProvider.host +' (provider) |');
             }
-            //$("#provider").text(web3.currentProvider.host +' (provider) |');
             $("#web3_version").text("| "+ web3.version.api +" (web3 version)");
 
             web3.version.getNetwork(function(err, networkID){
                 switch (networkID) {
                     case "1":
+                      //remove provider and show error so can only be used on test nets or locally until ready
                       console.log('This is mainnet');
                       break
                     case "2":
@@ -526,7 +526,7 @@
 
                                             var principalToken = erc20Contract.at(debtInquiry.principalToken);
                                             principalToken.symbol(function(err, symbol){
-                                                $("#market_data").prepend('<li><a id="'+String(hash)+'" href="debt_request_data">'+symbol+' - '+web3.fromWei(debtInquiry.principalAmount,'ether')+'</a><a id="'+String(hash)+'" href="process_loan" class="uk-button uk-button-default uk-button-small uk-margin-left">Lend</a></li>');
+                                                $("#market_data").prepend('<li><a id="'+String(hash)+'" href="debt_request_data">'+symbol+' - '+web3.fromWei(debtInquiry.principalAmount,'ether')+'</a><a id="'+String(hash)+'" href="process_loan" class="uk-button uk-button-default uk-button-small uk-margin-left uk-float-right">Lend</a></li>');
                                             });
                                             debtRequests[String(hash)] = debtRequest;
                                         } else {
@@ -577,6 +577,7 @@
                     case 'process_loan':
                         $("#process_loan").empty();
                         var debtRequest = debtRequests[e.target.id];
+                        $("#process_loan").append('<li>Lendee: '+debtRequest.lendee+'</li>');
                         $("#process_loan").append('<li>Principal Amount: '+web3.fromWei(debtRequest.principalAmount,'ether')+'</li>');
                         $("#process_loan").append('<li>Expires: '+moment.unix(debtRequest.expires).tz($("#timezone").val()).format('MM-DD-YYYY HH:mm')+'</li>');
 
@@ -622,17 +623,17 @@
                             var approval = allowances.currentProtocolTokenAllowance.plus(allowances.totalRepayment.plus(allowances.protocolFees));
                             protocolToken.approve(paymentHandler, web3.toWei(approval,'ether'), function(err, tx){
                                 if(!err){
-                                    console.log(tx);
+                                    console.log('Transaction Promise: '+tx);
                                     UIkit.notification("Approval Sent", {pos: 'top-right', timeout: '2000'});
                                 } else { console.log(JSON.stringify(err)); }
                             });
                         } else {
                             protocolToken.approve(paymentHandler, web3.toWei(allowances.currentProtocolTokenAllowance.plus(allowances.protocolFees),'ether'), function(err, tx){
                                 if(!err){
-                                    console.log(tx);
+                                    console.log('Transaction Promise: '+tx);
                                     erc20Contract.at(allowances.principalToken).approve(paymentHandler, web3.toWei(allowances.currentPrincipalTokenAllowance.plus(allowances.totalRepayment), 'ether'), function(err, tx){
                                         if(!err){
-                                            console.log(tx);
+                                            console.log('Transaction Promise: '+tx);
                                             UIkit.notification("Approvals Sent", {pos: 'top-right', timeout: '2000'});
                                         } else { console.log(JSON.stringify(err)); }
                                     });
@@ -642,9 +643,29 @@
                     });
                 break;
                 case 'lender_submit_approvals':
-                    // getLenderAllowances(function(allowances){
-                    //     allowances.protocolFees;
-                    // });
+                    getLenderAllowances(function(allowances){
+                        if(allowances.principalToken == protocolToken.address){
+                            var approval = allowances.currentProtocolTokenAllowance.plus(allowances.amountToLend.plus(allowances.protocolFees));
+                            protocolToken.approve(paymentHandler, web3.toWei(approval,'ether'), function(err, tx){
+                                if(!err){
+                                    console.log('Transaction Promise: '+tx);
+                                    UIkit.notification("Approval Sent", {pos: 'top-right', timeout: '2000'});
+                                } else { console.log(JSON.stringify(err)); }
+                            });
+                        } else {
+                            protocolToken.approve(paymentHandler, web3.toWei(allowances.currentProtocolTokenAllowance.plus(allowances.protocolFees),'ether'), function(err, tx){
+                                if(!err){
+                                    console.log('Transaction Promise: '+tx);
+                                    erc20Contract.at(allowances.principalToken).approve(paymentHandler, web3.toWei(allowances.currentPrincipalTokenAllowance.plus(allowances.amountToLend), 'ether'), function(err, tx){
+                                        if(!err){
+                                            console.log('Transaction Promise: '+tx);
+                                            UIkit.notification("Approvals Sent", {pos: 'top-right', timeout: '2000'});
+                                        } else { console.log(JSON.stringify(err)); }
+                                    });
+                                } else { console.log(JSON.stringify(err)); }
+                            });
+                        }
+                    });
                 break;
             }
         });
@@ -703,6 +724,7 @@
                     
                     allowances.amountToLend = web3.toBigNumber((formLenderData.amountToLend ? formLenderData.amountToLend.replace(/,/g , '') : 0));
                     allowances.protocolFees = web3.fromWei(web3.toBigNumber(debtRequest.lenderAgentFee),'ether');
+                    allowances.principalToken = debtRequest.principalToken;
                     callback(allowances);
                 });
             });
