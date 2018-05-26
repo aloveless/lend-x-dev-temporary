@@ -27,7 +27,7 @@ contract Lend is Ownable {
     //https://github.com/ethereum/solidity/issues/1686
     //Return Transaction Error from Require/Revert not supported yet
     enum Errors {
-        AGREEMENT_EXPIRED,                      // Agreement has already expired
+        REQUEST_EXPIRED,                      // Agreement has already expired
         LOAN_FILLED,                            // Debt has been fully transfered
         ROUNDING_ERROR_TOO_LARGE,               // Rounding error too large
         INSUFFICIENT_BALANCE_OR_ALLOWANCE,      // Insufficient balance or allowance for token transfer
@@ -142,7 +142,7 @@ contract Lend is Ownable {
         }
         
         if(block.timestamp > debt.expires){
-            emit LogError(uint8(Errors.AGREEMENT_EXPIRED), debt.debtHash);
+            emit LogError(uint8(Errors.REQUEST_EXPIRED), debt.debtHash);
             return 0;
         }
         
@@ -155,7 +155,7 @@ contract Lend is Ownable {
         uint256 currentPrincipal = getPrincipal(debt.debtHash);
         uint256 principalAmountRemaining = debt.principal.sub(currentPrincipal);
         uint256 lenderLoanAmount = (_amountToLend < principalAmountRemaining ? _amountToLend : principalAmountRemaining);
-        
+
         if(_lenderLoanOptions[0] == false && lenderLoanAmount < _amountToLend){
             emit LogError(uint8(Errors.lENDER_PARTIAL_LOAN_NOT_ALLOWABLE), debt.debtHash);
             return 0;
