@@ -37,12 +37,13 @@
                     <li>
                         <a uk-icon="icon: credit-card; ratio: 1.5" href="#" class="uk-icon"></a>
                         <div class="uk-navbar-dropdown uk-dropdown uk-width-auto" uk-dropdown="offset: 0;delay-hide:100;">
+                            <label>Send Tokens</label>
                             <div class="uk-dropdown-grid" uk-grid>
                                 <div>
-                                    <select id="token_transfer" class="uk-select uk-width-auto"></select>
-                                    <input id="token_transfer_amount" class="uk-input uk-width-1-3" type="text" placeholder="Amount" />
-                                    <input id="token_transfer_recipient" class="uk-input uk-width-1-2" type="text" placeholder="Recipient" />
-                                    <button id="send_token_transfer" class="uk-button uk-button-primary">Send</button>
+                                    <select id="token_transfer" class="uk-select uk-width-auto"></select><br>
+                                    <input id="token_transfer_recipient" class="uk-input" type="text" placeholder="Recipient" />
+                                    <input id="token_transfer_amount" class="uk-input uk-width-1-2" type="text" placeholder="Amount" />
+                                    <button id="send_token_transfer" class="uk-button uk-button-primary uk-float-right">Send</button>
                                 </div>
                             </div>
                         </div>
@@ -319,14 +320,14 @@
         var lendContract = web3.eth.contract([{"constant":false,"inputs":[{"name":"_requestID","type":"bytes32"}],"name":"approveCreditLineOffer","outputs":[{"name":"approveOfferAmount","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_loanAddresses","type":"address[8]"},{"name":"_loanValues","type":"uint256[15]"},{"name":"_amountToLend","type":"uint256"},{"name":"_lendeeSig","type":"bytes"},{"name":"_underwriterSig","type":"bytes"},{"name":"_guarantorSig","type":"bytes"},{"name":"_lenderLoanOptions","type":"bool[1]"}],"name":"submitDebtAgreement","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"GAS_LIMIT","outputs":[{"name":"","type":"uint16"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_token","type":"address"},{"name":"_owner","type":"address"}],"name":"getAllowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"deprecated","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"protocolToken","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"unlockContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_supercededBy","type":"address"}],"name":"deprecateContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"debtHash","type":"bytes32"},{"name":"amountToForgive","type":"uint256"}],"name":"forgiveDebt","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"debtHash","type":"bytes32"}],"name":"getPrincipal","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"debtHash","type":"bytes32"}],"name":"getOutstandingDebt","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"lockContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_loanAddresses","type":"address[8]"},{"name":"_loanValues","type":"uint256[15]"}],"name":"getDebtHash","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[{"name":"_requestID","type":"bytes32"},{"name":"_newOwner","type":"uint256"}],"name":"transferDebtOwnership","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_requestor","type":"address"}],"name":"getInterestAccrued","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"externalStorage","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_signer","type":"address"},{"name":"_debtHash","type":"bytes32"},{"name":"_sig","type":"bytes"}],"name":"validSignature","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"numerator","type":"uint256"},{"name":"denominator","type":"uint256"},{"name":"target","type":"uint256"}],"name":"getPartialAmount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[],"name":"tokenRegistry","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"paymentHandler","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"locked","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_token","type":"address"},{"name":"_owner","type":"address"}],"name":"getBalance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"initiateSecondaryDebtSale","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"VERSION","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_protocolToken","type":"address"},{"name":"_storage","type":"address"},{"name":"_paymentHandler","type":"address"},{"name":"_tokenRegistry","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"output","type":"uint256"}],"name":"LogTestValue","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"errorCode","type":"uint8"},{"indexed":true,"name":"debtHash","type":"bytes32"}],"name":"LogError","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"supercededBy","type":"address"}],"name":"DeprecatedEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"status","type":"bool"}],"name":"LockedEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"lendee","type":"address"},{"indexed":true,"name":"lender","type":"address"},{"indexed":false,"name":"agent","type":"address"},{"indexed":false,"name":"underwriter","type":"address"},{"indexed":false,"name":"lenderAmount","type":"uint256"},{"indexed":false,"name":"remaining","type":"uint256"}],"name":"DebtAgreementEvent","type":"event"}]);
 
         //Contract Objects
-        protocolToken = erc20Contract.at('0x057d2360abbe75f9fdf142f2cfe68cfc9a74ec12');
-        lendx = lendContract.at('0x35b338b4ade005f25a8982a597638827b8617ad4');
-        paymentHandler = '0xaa588d3737b611bafd7bd713445b314bd453a5c8';
+        protocolToken = erc20Contract.at('0x3b7b91bfc01edf67b210007be5e3889f2cbfdfea');
+        lendx = lendContract.at('0xef61059258414a65bf2d94a4fd3b503b5fee8b48');
+        paymentHandler = '0x53cc798ad1d76c2e46bc19532febae025f95d526';
 
         tokenRegistry = [
-            '0x9d075ae44d859191c121d7522da0cc3b104b8837',
-            '0xf426505ac145abe033fe77c666840063757be9cd',
-            '0x057d2360abbe75f9fdf142f2cfe68cfc9a74ec12'
+            '0xe94fa3040d20a01a1b8f42de7c430a11c27e2524',
+            '0x8602fb26775de7467769821ffa111d2f2a62f979',
+            '0x3b7b91bfc01edf67b210007be5e3889f2cbfdfea'
         ];
 
         $(function(){
@@ -436,47 +437,56 @@
                   }
             });
 
-
             //Watch Protocol Events
-            var LogTestValue = lendx.LogTestValue({}, {fromBlock: 0, toBlock: 'latest'});
-            LogTestValue.watch(function(err, res){
-                //console.log(res);
-                 $("#logs").prepend('<li>'+res.event+' ('+res.logIndex+') '+web3.fromWei(res.args.output,'ether')+'</li>');
-            });
-            var LogError = lendx.LogError({}, {fromBlock: 0, toBlock: 'latest'});
-            LogError.watch(function(err, res){
-               if (!err){
-                    //console.log(res);
-                    var errorCode = [
-                        "AGREEMENT_EXPIRED",
-                        "LOAN_FILLED",
-                        "ROUNDING_ERROR_TOO_LARGE",
-                        "INSUFFICIENT_BALANCE_OR_ALLOWANCE",
-                        "lENDER_PARTIAL_LOAN_NOT_ALLOWABLE"
-                    ];
-                    $("#logs").prepend('<li>'+res.event+' ('+res.logIndex+') '+errorCode[String(res.args.errorCode)]+'</li>');
-                }
-            });
-
-            //Watch Transactions
-            // var txFilter = web3.eth.filter('latest');
-            // txFilter.watch(function(err, blockHash){
-            //     if (!err) {
-            //         var block = web3.eth.getBlock(blockHash, true);        
-            //         if (block.transactions.length > 0) {
-            //             for(i = 0; i < block.transactions.length; i++){
-            //                 if(block.transactions[i].from == web3.eth.defaultAccount){
-            //                     // console.log(block.transactions[i]);
-            //                     var txReceipt = web3.eth.getTransactionReceipt(block.transactions[i].hash);
-            //                     console.log(txReceipt);
-            //                     console.log((txReceipt.status == '0x00' ? 'error' : 'valid'));
-            //                 }
-            //             }
-            //         }
-            //     } else {
-            //         console.log('txFilter Error: '+err);
+            // var LogTestValue = lendx.LogTestValue({}, {fromBlock: 0, toBlock: 'latest'});
+            // LogTestValue.watch(function(err, res){
+            //     $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args.output,'ether')+'</li>');
+            // });
+            // var DebtAgreementEvent = lendx.DebtAgreementEvent({}, {fromBlock: 0, toBlock: 'latest'});
+            // DebtAgreementEvent.watch(function(err, res){
+            //     console.log(res);
+            //     $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args.output,'ether')+'</li>');
+            // });
+            // var LogError = lendx.LogError({}, {fromBlock: 0, toBlock: 'latest'});
+            // LogError.watch(function(err, res){
+            //    if (!err){
+            //         // console.log(res);
+            //         var errorCode = [
+            //             "REQUEST_EXPIRED",
+            //             "LOAN_FILLED",
+            //             "ROUNDING_ERROR_TOO_LARGE",
+            //             "INSUFFICIENT_BALANCE_OR_ALLOWANCE",
+            //             "lENDER_PARTIAL_LOAN_NOT_ALLOWABLE"
+            //         ];
+            //         $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+errorCode[String(res.args.errorCode)]+'</li>');
             //     }
             // });
+            // //ERC20 Transfer
+            // var Transfer = erc20Contract.at('0xf426505ac145abe033fe77c666840063757be9cd').Transfer({}, {fromBlock: 0, toBlock: 'latest'});
+            // Transfer.watch(function(err, res){
+            //     $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args._value,'ether')+'</li>');
+            // });
+
+            //Watch Transactions
+            var txFilter = web3.eth.filter('latest');
+            txFilter.watch(function(err, blockHash){
+                if (!err) {
+                    var block = web3.eth.getBlock(blockHash, true);        
+                    if (block.transactions.length > 0) {
+                        for(i = 0; i < block.transactions.length; i++){
+                            if(block.transactions[i].to == lendx.address){
+                                web3.eth.getTransactionReceipt(block.transactions[i].hash, function(err, txReceipt){
+                                    console.log('Block #: '+txReceipt.blockNumber);
+                                    console.log(txReceipt);
+                                    console.log((txReceipt.status == '0x00' ? 'error' : 'valid'));
+                                });
+                            }
+                        }
+                    }
+                } else {
+                    console.log('txFilter Error: '+err);
+                }
+            });
 
 
             debtRequests = {};
@@ -511,7 +521,7 @@
                 debtTerms.lateFee = (formTermsData.lateFee ? web3.toWei(formTermsData.lateFee.replace(/,/g , ''), 'ether') : 0);
                 debtTerms.collateralToken = (web3.isAddress(formTermsData.collateralToken) ? formTermsData.collateralToken : web3.toHex(0));
                 debtTerms.collateralAmount = (formTermsData.collateralAmount ? web3.toWei(formTermsData.collateralAmount.replace(/,/g , ''), 'ether') : 0);
-                debtTerms.defaultPeriod = (formTermsData.loanDefaultPeriod ? parseInt(formTermsData.loanDefaultPeriod) : 0);
+                debtTerms.defaultPeriod = (formTermsData.defaultPeriod ? parseInt(formTermsData.defaultPeriod) : 0);
                 debtTerms.expires = (moment(formTermsData.expires, 'MM-DD-YYYY HH:mm', true).isValid() ? moment.tz(formTermsData.expires, 'MM-DD-YYYY HH:mm', true, $("#timezone").val()).unix() : 0);
                 //Guarantor
                 debtGuarantor.guarantor =  (web3.isAddress(formGuarantorData.guarantor) ? formGuarantorData.guarantor : web3.toHex(0));
@@ -530,6 +540,7 @@
 
                 lendx.getDebtHash(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, function(err, hash){
                     if(!err){
+                        console.log('Debt Hash: '+hash);
                         //web3.personal.sign(hash, web3.eth.accounts[0], function(err, sig){
                         web3.eth.sign(web3.eth.defaultAccount, hash, function(err, sig){
                             if(!err){
@@ -622,7 +633,11 @@
                     getLenderAllowances(function(allowances){
                         $("#lender_approvals_data").empty();
                         $("#lender_approvals_data").append('<li>Loan Amount: '+allowances.amountToLend+'</li>');
-                        $("#lender_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'</li>');
+                        $("#lender_approvals_data").append('<li>Total Protocol Fees: '+allowances.protocolFees+'</li><div class="uk-divider-icon"></div>');
+                        $("#lender_approvals_data").append('<li>Current Principal Token Balance: '+allowances.currentPrincipalTokenBalance+'</li>');
+                        $("#lender_approvals_data").append('<li>Current Principal Token Allowance: '+allowances.currentPrincipalTokenAllowance+'</li>');
+                        $("#lender_approvals_data").append('<li>Current Protocol Token Balance: '+allowances.currentProtocolTokenBalance+'</li>');
+                        $("#lender_approvals_data").append('<li>Current Protocol Token Allowance: '+allowances.currentProtocolTokenAllowance+'</li>');
                         UIkit.modal("#lender_approvals_modal").show();
                     });
                 break;
@@ -731,15 +746,20 @@
             var formLenderData = $("#lender_data").serializeJSON();
             var allowances = {};
 
-            protocolToken.allowance(web3.eth.defaultAccount, paymentHandler, function(err, res){ 
+            protocolToken.allowance(web3.eth.defaultAccount, paymentHandler, function(err, res){
                 allowances.currentProtocolTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
-                erc20Contract.at(debtRequest.principalToken).allowance(web3.eth.defaultAccount, paymentHandler, function(err, res){ 
-                    allowances.currentPrincipalTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
-                    
-                    allowances.amountToLend = web3.toBigNumber((formLenderData.amountToLend ? formLenderData.amountToLend.replace(/,/g , '') : 0));
-                    allowances.protocolFees = web3.fromWei(web3.toBigNumber(debtRequest.lenderAgentFee),'ether');
-                    allowances.principalToken = debtRequest.principalToken;
-                    callback(allowances);
+                protocolToken.balanceOf(web3.eth.defaultAccount, function(err, res){
+                    allowances.currentProtocolTokenBalance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
+                    erc20Contract.at(debtRequest.principalToken).allowance(web3.eth.defaultAccount, paymentHandler, function(err, res){
+                        allowances.currentPrincipalTokenAllowance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
+                        erc20Contract.at(debtRequest.principalToken).balanceOf(web3.eth.defaultAccount, function(err, res){
+                            allowances.currentPrincipalTokenBalance = web3.toBigNumber(web3.fromWei(String(res),'ether'));
+                            allowances.amountToLend = web3.toBigNumber((formLenderData.amountToLend ? formLenderData.amountToLend.replace(/,/g , '') : 0));
+                            allowances.protocolFees = web3.fromWei(web3.toBigNumber(debtRequest.lenderAgentFee),'ether');
+                            allowances.principalToken = debtRequest.principalToken;
+                            callback(allowances);
+                        });
+                    });
                 });
             });
         }
@@ -804,11 +824,19 @@
             return res;
         }
 
-        $("#send_token_transfer").on('click', function(e){
+        $("#send_token_transfer").on('click', function(){
             var token = $("#token_transfer").val();
             var recipient = (web3.isAddress($("#token_transfer_recipient").val()) ? $("#token_transfer_recipient").val() : '0x0');
             var amount = ($("#token_transfer_amount").val() ? web3.toWei($("#token_transfer_amount").val().replace(/,/g , ''), 'ether') : 0);
-
+            console.log(token);
+            console.log(recipient);
+            console.log(web3.toWei(amount, 'ether'));
+            erc20Contract.at(token).transfer(recipient, amount, function(err, tx){
+                if(!err){
+                    console.log(tx);
+                    UIkit.notification("Transaction Sent", {pos: 'top-right', timeout: '2000'});
+                } else { console.log(JSON.stringify(err)); }
+            });
         });
 
         //Based on https://medium.com/@dazcyril/generating-cryptographic-random-state-in-javascript-in-the-browser-c538b3daae50
