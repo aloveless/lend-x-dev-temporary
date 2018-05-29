@@ -320,14 +320,14 @@
         var lendContract = web3.eth.contract([{"constant":false,"inputs":[{"name":"_requestID","type":"bytes32"}],"name":"approveCreditLineOffer","outputs":[{"name":"approveOfferAmount","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_loanAddresses","type":"address[8]"},{"name":"_loanValues","type":"uint256[15]"},{"name":"_amountToLend","type":"uint256"},{"name":"_lendeeSig","type":"bytes"},{"name":"_underwriterSig","type":"bytes"},{"name":"_guarantorSig","type":"bytes"},{"name":"_lenderLoanOptions","type":"bool[1]"}],"name":"submitDebtAgreement","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"GAS_LIMIT","outputs":[{"name":"","type":"uint16"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_token","type":"address"},{"name":"_owner","type":"address"}],"name":"getAllowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"deprecated","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"protocolToken","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"unlockContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_supercededBy","type":"address"}],"name":"deprecateContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"debtHash","type":"bytes32"},{"name":"amountToForgive","type":"uint256"}],"name":"forgiveDebt","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"debtHash","type":"bytes32"}],"name":"getPrincipal","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"debtHash","type":"bytes32"}],"name":"getOutstandingDebt","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"lockContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_loanAddresses","type":"address[8]"},{"name":"_loanValues","type":"uint256[15]"}],"name":"getDebtHash","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[{"name":"_requestID","type":"bytes32"},{"name":"_newOwner","type":"uint256"}],"name":"transferDebtOwnership","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_requestor","type":"address"}],"name":"getInterestAccrued","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"externalStorage","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_signer","type":"address"},{"name":"_debtHash","type":"bytes32"},{"name":"_sig","type":"bytes"}],"name":"validSignature","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"numerator","type":"uint256"},{"name":"denominator","type":"uint256"},{"name":"target","type":"uint256"}],"name":"getPartialAmount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[],"name":"tokenRegistry","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"paymentHandler","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"locked","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_token","type":"address"},{"name":"_owner","type":"address"}],"name":"getBalance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"initiateSecondaryDebtSale","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"VERSION","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_protocolToken","type":"address"},{"name":"_storage","type":"address"},{"name":"_paymentHandler","type":"address"},{"name":"_tokenRegistry","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"output","type":"uint256"}],"name":"LogTestValue","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"errorCode","type":"uint8"},{"indexed":true,"name":"debtHash","type":"bytes32"}],"name":"LogError","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"supercededBy","type":"address"}],"name":"DeprecatedEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"status","type":"bool"}],"name":"LockedEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"lendee","type":"address"},{"indexed":true,"name":"lender","type":"address"},{"indexed":false,"name":"agent","type":"address"},{"indexed":false,"name":"underwriter","type":"address"},{"indexed":false,"name":"lenderAmount","type":"uint256"},{"indexed":false,"name":"remaining","type":"uint256"}],"name":"DebtAgreementEvent","type":"event"}]);
 
         //Contract Objects
-        protocolToken = erc20Contract.at('0x3b7b91bfc01edf67b210007be5e3889f2cbfdfea');
-        lendx = lendContract.at('0xef61059258414a65bf2d94a4fd3b503b5fee8b48');
-        paymentHandler = '0x53cc798ad1d76c2e46bc19532febae025f95d526';
+        protocolToken = erc20Contract.at('0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f');
+        lendx = lendContract.at('0x9f544a3fc3d1045e6ec49d4ecef6dcd700457165');
+        paymentHandler = '0xb9b7e0cb2edf5ea031c8b297a5a1fa20379b6a0a';
 
         tokenRegistry = [
-            '0xe94fa3040d20a01a1b8f42de7c430a11c27e2524',
-            '0x8602fb26775de7467769821ffa111d2f2a62f979',
-            '0x3b7b91bfc01edf67b210007be5e3889f2cbfdfea'
+            '0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4',
+            '0x9fbda871d559710256a2502a2517b794b482db40',
+            '0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f'
         ];
 
         $(function(){
@@ -438,55 +438,55 @@
             });
 
             //Watch Protocol Events
-            // var LogTestValue = lendx.LogTestValue({}, {fromBlock: 0, toBlock: 'latest'});
-            // LogTestValue.watch(function(err, res){
-            //     $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args.output,'ether')+'</li>');
-            // });
-            // var DebtAgreementEvent = lendx.DebtAgreementEvent({}, {fromBlock: 0, toBlock: 'latest'});
-            // DebtAgreementEvent.watch(function(err, res){
-            //     console.log(res);
-            //     $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args.output,'ether')+'</li>');
-            // });
-            // var LogError = lendx.LogError({}, {fromBlock: 0, toBlock: 'latest'});
-            // LogError.watch(function(err, res){
-            //    if (!err){
-            //         // console.log(res);
-            //         var errorCode = [
-            //             "REQUEST_EXPIRED",
-            //             "LOAN_FILLED",
-            //             "ROUNDING_ERROR_TOO_LARGE",
-            //             "INSUFFICIENT_BALANCE_OR_ALLOWANCE",
-            //             "lENDER_PARTIAL_LOAN_NOT_ALLOWABLE"
-            //         ];
-            //         $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+errorCode[String(res.args.errorCode)]+'</li>');
-            //     }
-            // });
-            // //ERC20 Transfer
-            // var Transfer = erc20Contract.at('0xf426505ac145abe033fe77c666840063757be9cd').Transfer({}, {fromBlock: 0, toBlock: 'latest'});
-            // Transfer.watch(function(err, res){
-            //     $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args._value,'ether')+'</li>');
-            // });
-
-            //Watch Transactions
-            var txFilter = web3.eth.filter('latest');
-            txFilter.watch(function(err, blockHash){
-                if (!err) {
-                    var block = web3.eth.getBlock(blockHash, true);        
-                    if (block.transactions.length > 0) {
-                        for(i = 0; i < block.transactions.length; i++){
-                            if(block.transactions[i].to == lendx.address){
-                                web3.eth.getTransactionReceipt(block.transactions[i].hash, function(err, txReceipt){
-                                    console.log('Block #: '+txReceipt.blockNumber);
-                                    console.log(txReceipt);
-                                    console.log((txReceipt.status == '0x00' ? 'error' : 'valid'));
-                                });
-                            }
-                        }
-                    }
-                } else {
-                    console.log('txFilter Error: '+err);
+            var LogTestValue = lendx.LogTestValue({}, {fromBlock: 0, toBlock: 'latest'});
+            LogTestValue.watch(function(err, res){
+                $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args.output,'ether')+'</li>');
+            });
+            var DebtAgreementEvent = lendx.DebtAgreementEvent({}, {fromBlock: 0, toBlock: 'latest'});
+            DebtAgreementEvent.watch(function(err, res){
+                console.log(res);
+                $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args.output,'ether')+'</li>');
+            });
+            var LogError = lendx.LogError({}, {fromBlock: 0, toBlock: 'latest'});
+            LogError.watch(function(err, res){
+               if (!err){
+                    // console.log(res);
+                    var errorCode = [
+                        "REQUEST_EXPIRED",
+                        "LOAN_FILLED",
+                        "ROUNDING_ERROR_TOO_LARGE",
+                        "INSUFFICIENT_BALANCE_OR_ALLOWANCE",
+                        "lENDER_PARTIAL_LOAN_NOT_ALLOWABLE"
+                    ];
+                    $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+errorCode[String(res.args.errorCode)]+'</li>');
                 }
             });
+            //ERC20 Transfer
+            var Transfer = erc20Contract.at('0xf426505ac145abe033fe77c666840063757be9cd').Transfer({}, {fromBlock: 0, toBlock: 'latest'});
+            Transfer.watch(function(err, res){
+                $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args._value,'ether')+'</li>');
+            });
+
+            //Watch Transactions
+            // var txFilter = web3.eth.filter('latest');
+            // txFilter.watch(function(err, blockHash){
+            //     if (!err) {
+            //         var block = web3.eth.getBlock(blockHash, true);        
+            //         if (block.transactions.length > 0) {
+            //             for(i = 0; i < block.transactions.length; i++){
+            //                 if(block.transactions[i].to == lendx.address){
+            //                     web3.eth.getTransactionReceipt(block.transactions[i].hash, function(err, txReceipt){
+            //                         console.log('Block #: '+txReceipt.blockNumber);
+            //                         console.log(txReceipt);
+            //                         console.log((txReceipt.status == '0x00' ? 'error' : 'valid'));
+            //                     });
+            //                 }
+            //             }
+            //         }
+            //     } else {
+            //         console.log('txFilter Error: '+err);
+            //     }
+            // });
 
 
             debtRequests = {};
@@ -506,28 +506,28 @@
                 //Inquiry
                 debtInquiry.protocolAddress = lendx.address;
                 debtInquiry.lendee = web3.eth.defaultAccount;
-                debtInquiry.lender = (web3.isAddress(formInquiryData.lender) ? formInquiryData.lender : web3.toHex(0));
+                debtInquiry.lender = (web3.isAddress(formInquiryData.lender) ? formInquiryData.lender : "0x0000000000000000000000000000000000000000");
                 debtInquiry.principalToken = formInquiryData.principalToken;
                 debtInquiry.principalAmount = (formInquiryData.principalAmount ? web3.toWei(formInquiryData.principalAmount.replace(/,/g , ''), 'ether') : 0);
                 debtInquiry.loanStart = (moment(formInquiryData.loanStart, 'MM-DD-YYYY HH:mm', true).isValid() ? moment.tz(formInquiryData.loanStart, 'MM-DD-YYYY HH:mm', true, $("#timezone").val()).unix() : 0);
                 debtInquiry.salt = pseudoRandomNumber();
                 //Terms
-                debtTerms.underwriter = (web3.isAddress(formTermsData.underwriter) ? formTermsData.underwriter : web3.toHex(0));
+                debtTerms.underwriter = (web3.isAddress(formTermsData.underwriter) ? formTermsData.underwriter : "0x0000000000000000000000000000000000000000");
                 debtTerms.originationFee = (formTermsData.originationFee ? web3.toWei(formTermsData.originationFee.replace(/,/g , ''), 'ether') : 0);
                 debtTerms.loanTerm = (formTermsData.loanTerm ? parseInt(formTermsData.loanTerm) : 0);
                 debtTerms.periodicInterestRate = (formTermsData.periodicInterestRate > 0 ? parseInt(formTermsData.periodicInterestRate*1000) : 0);
                 debtTerms.paymentAmount = (formTermsData.paymentAmount ? web3.toWei(formTermsData.paymentAmount.replace(/,/g , ''), 'ether') : 0);
                 debtTerms.paymentInterval = (formTermsData.paymentInterval ? parseInt(formTermsData.paymentInterval) : 0);
                 debtTerms.lateFee = (formTermsData.lateFee ? web3.toWei(formTermsData.lateFee.replace(/,/g , ''), 'ether') : 0);
-                debtTerms.collateralToken = (web3.isAddress(formTermsData.collateralToken) ? formTermsData.collateralToken : web3.toHex(0));
+                debtTerms.collateralToken = (web3.isAddress(formTermsData.collateralToken) ? formTermsData.collateralToken : "0x0000000000000000000000000000000000000000");
                 debtTerms.collateralAmount = (formTermsData.collateralAmount ? web3.toWei(formTermsData.collateralAmount.replace(/,/g , ''), 'ether') : 0);
                 debtTerms.defaultPeriod = (formTermsData.defaultPeriod ? parseInt(formTermsData.defaultPeriod) : 0);
                 debtTerms.expires = (moment(formTermsData.expires, 'MM-DD-YYYY HH:mm', true).isValid() ? moment.tz(formTermsData.expires, 'MM-DD-YYYY HH:mm', true, $("#timezone").val()).unix() : 0);
                 //Guarantor
-                debtGuarantor.guarantor =  (web3.isAddress(formGuarantorData.guarantor) ? formGuarantorData.guarantor : web3.toHex(0));
+                debtGuarantor.guarantor =  (web3.isAddress(formGuarantorData.guarantor) ? formGuarantorData.guarantor : "0x0000000000000000000000000000000000000000");
                 debtGuarantor.guarantorFee =  (formGuarantorData.guarantorFee ? web3.toWei(formGuarantorData.guarantorFee.replace(/,/g , ''), 'ether') : 0);
                 //Agent
-                debtAgent.agent = (web3.isAddress(formAgentData.agent) ? formAgentData.agent : web3.toHex(0));
+                debtAgent.agent = (web3.isAddress(formAgentData.agent) ? formAgentData.agent : "0x0000000000000000000000000000000000000000");
                 debtAgent.lendeeAgentFee =  (formAgentData.lendeeAgentFee ? web3.toWei(formAgentData.lendeeAgentFee.replace(/,/g , ''), 'ether') : 0);
                 debtAgent.lenderAgentFee =  (formAgentData.lenderAgentFee ? web3.toWei(formAgentData.lenderAgentFee.replace(/,/g , ''), 'ether') : 0);
 
@@ -570,8 +570,7 @@
                     }
                 });
 
-                //var debtRequestHash = web3.sha3(String(loanAddresses.join('')), String(loanValues), { encoding: 'hex' });
-                //var serialize = '{"jsonrpc":"2.0","method":"eth_sign","params":["'+web3.eth.accounts[0]+'", "'+debtRequestHash+'"],"id":'+web3.eth.getTransactionCount(web3.eth.accounts[0])+'}';
+                //var debugCall = '{"jsonrpc":"2.0","method":"debug_traceTransaction","params":["'+web3.eth.defaultAccount+'", "'+debtRequestHash+'"],"id":'+web3.eth.getTransactionCount(web3.eth.defaultAccount)+'}';
                 // $.post( "HTTP://127.0.0.1:7545", serialize , function(data) {
                     //$("#events").append("Message Hash:<br>"+hash+"<br>Length: "+hash.length+"<br><br>Signature Hash:<br>"+ data.result+"<br>Length: "+data.result.length);
                     // unHex = data.result.substring(2);
@@ -774,7 +773,7 @@
 
             switch($(this).attr('id')){
                 case 'lender_submit_debt_request':
-                    lendx.submitDebtAgreement(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, tx){
+                    lendx.submitDebtAgreement(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, '0x0', '0x0', lenderLoanOptions, {gas: 2000000}, function(err, tx){
                         if(!err){
                             console.log(tx);
                             UIkit.notification("Transaction Sent", {pos: 'top-right', timeout: '2000'});
@@ -782,7 +781,7 @@
                     });
                 break;
                 case 'lender_submit_debt_request_call_locally':
-                    lendx.submitDebtAgreement.call(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, null, null, lenderLoanOptions, function(err, res){
+                    lendx.submitDebtAgreement.call(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, amountToLend, debtRequest.lendeeSig, '0x0', '0x0', lenderLoanOptions, {gas: 2000000}, function(err, res){
                         if(!err){
                             console.log(res);
                             UIkit.notification("Response: "+res, {pos: 'top-right', timeout: '2000'});
@@ -830,7 +829,7 @@
             var amount = ($("#token_transfer_amount").val() ? web3.toWei($("#token_transfer_amount").val().replace(/,/g , ''), 'ether') : 0);
             console.log(token);
             console.log(recipient);
-            console.log(web3.toWei(amount, 'ether'));
+            console.log(amount);
             erc20Contract.at(token).transfer(recipient, amount, function(err, tx){
                 if(!err){
                     console.log(tx);
