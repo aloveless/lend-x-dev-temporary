@@ -14,11 +14,6 @@ contract Authorized is Ownable {
     mapping (address => bool) public authorized;
     address[] public addressList;
 
-    constructor() public {
-        addressList.push(msg.sender);
-        authorized[msg.sender] = true;
-    }
-
     modifier onlyAuthorized() {
         require(authorized[msg.sender] == true);
         _;
