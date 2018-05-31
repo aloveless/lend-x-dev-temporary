@@ -15,7 +15,7 @@ contract Lend is Ownable {
     TokenRegistry public tokenRegistry;
     PaymentHandler public paymentHandler;
     ERC20Interface public protocolToken;
-    // Major Releases/Stable Version - prior version deprecated
+    // Major Releases/Stable Version - prior version is deprecated
     // Updates/New Functionality - prior version deprecated
     // Bug/Security Fixes - prior version locked
     string constant public VERSION = "0.1.0";
@@ -34,6 +34,7 @@ contract Lend is Ownable {
         lENDER_PARTIAL_LOAN_NOT_ALLOWABLE       // Lender does not allow partial fill and fillable amount is less than lender loan amount
     }
     
+    //Remove After Testing
     event LogTestValue(uint256 output);
     
     event LogError(uint8 indexed errorCode, bytes32 indexed debtHash);
@@ -42,11 +43,24 @@ contract Lend is Ownable {
     
     event DebtAgreementEvent(
         address indexed lendee,
-        address indexed lender,
-        address agent,
+        address lender,
+        address principalToken,
         address underwriter,
-        uint256 lenderAmount,
-        uint256 remaining
+        address collateralToken,
+        address indexed guarantor,
+        address indexed agent,
+        uint256 lenderLoanAmount, //let lendee know amount loaned
+        uint256 originationFee,
+        uint256 loanTerm,
+        uint256 periodicInterestRate,
+        uint256 paymentAmount,
+        uint256 paymentInterval,
+        uint256 lateFee,
+        uint256 collateralAmount,
+        uint256 defaultPeriod,
+        uint256 lendeeAgentFee,
+        uint256 lenderAgentFee,
+        bytes32 debtAgreementHash //should this be indexed
     );
     
     struct DebtAgreement {
@@ -58,7 +72,7 @@ contract Lend is Ownable {
         address guarantor;
         address agent;
         uint256 principal;
-        uint256 loanStart;
+        uint256 loanStart; // may not need this, set to block # when loan is funded or expires & funded
         uint256 originationFee;
         uint256 loanTerm;
         uint256 periodicInterestRate;
@@ -82,11 +96,11 @@ contract Lend is Ownable {
     }
 
     /** 
-    * @dev Process an offchain Debt Agreement
+    * @dev Process offchain Debt Request
     * @param _lenderLoanOptions array of Lender conditions that must be met before tokens are transferred. [0] = allowPartialLoan
     * @return Total amount of consideration transfered from Lender to Lendee.
     */
-    function submitDebtAgreement(address[8] _loanAddresses, uint256[15] _loanValues, uint256 _amountToLend, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig, bool[1] _lenderLoanOptions) public isDeprecated isLocked returns(uint256){
+    function processDebtRequest(address[8] _loanAddresses, uint256[15] _loanValues, uint256 _amountToLend, bytes _lendeeSig, bytes _underwriterSig, bytes _guarantorSig, bool[1] _lenderLoanOptions) public isDeprecated isLocked returns(uint256){
         
         DebtAgreement memory debt = DebtAgreement({
             lendee: _loanAddresses[1],
@@ -221,8 +235,23 @@ contract Lend is Ownable {
         }
         
         //emit DebtAgreementEvent( debt.debtHash);
-        
+
         return lenderLoanAmount;
+    }
+    
+    //Separating partial fill from full fill request
+    //partial will be like a crowdfunded loan where it's first transferred to payment paymentHandler
+    //and then lendee withdraws committed amount if min comittment is achieved
+    //full will require full amount by address which could be another contract in reality
+    function processFullDebtRequest(){
+        
+    }
+    
+    //If guarantor is not part of original signed request lender can separatly include
+    //this could also be part of original function as separate guarantor array argument
+    //breaking into separate function for now and will probably be part of v2
+    function submitLenderGuaranteedDebtAgreement(){
+        
     }
     
     function getDebtHash(address[8] _loanAddresses, uint256[15] _loanValues) public pure returns(bytes32){
@@ -337,6 +366,12 @@ contract Lend is Ownable {
     
     function keyExists(bytes32 _requestID) internal view returns(bool){
         return externalStorage.getBooleanValue(_requestID, keccak256('Exists'));
+    }
+    
+    function isContract(address addr) returns (bool) {
+      uint size;
+      assembly { size := extcodesize(addr) }
+      return size > 0;
     }
     
     /**
