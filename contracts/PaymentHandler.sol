@@ -26,7 +26,7 @@ contract PaymentHandler is Authorized {
 
   }
   
-    function transferFrom(address _token, address _from, address _to, uint _value) public returns(bool){
+    function transferFrom(address _token, address _from, address _to, uint256 _value) public onlyAuthorized returns(bool){
         return ERC20Interface(_token).transferFrom(_from, _to, _value);
     }
 
