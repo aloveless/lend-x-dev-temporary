@@ -37,7 +37,7 @@
                     <li>
                         <a uk-icon="icon: credit-card; ratio: 1.5" href="#" class="uk-icon"></a>
                         <div class="uk-navbar-dropdown uk-dropdown uk-width-auto" uk-dropdown="offset: 0;delay-hide:100;">
-                            <label>Send Tokens</label>
+                            <label>Send Tokens (Transfers Only, Not For Loan Payments)</label>
                             <div class="uk-dropdown-grid" uk-grid>
                                 <div>
                                     <select id="token_transfer" class="uk-select uk-width-auto"></select><br>
@@ -438,34 +438,37 @@
             });
 
             //Watch Protocol Events
-            var LogTestValue = lendx.LogTestValue({}, {fromBlock: 0, toBlock: 'latest'});
+            var LogTestValue = lendx.allEvents({fromBlock: 0, toBlock: 'latest'});
             LogTestValue.watch(function(err, res){
-                $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args.output,'ether')+'</li>');
+                if(!err){
+                    switch(res.event){
+                        case 'DebtAgreementEvent':
+                            console.log(res);
+                        break;
+                        case 'LogError':
+                            var errorCode = [
+                                "REQUEST_EXPIRED",
+                                "LOAN_FILLED",
+                                "ROUNDING_ERROR_TOO_LARGE",
+                                "INSUFFICIENT_BALANCE_OR_ALLOWANCE",
+                                "lENDER_PARTIAL_LOAN_NOT_ALLOWABLE"
+                            ];
+                            $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+errorCode[String(res.args.errorCode)]+'</li>');
+                        break;
+                        case 'LogTestValue':
+                            $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args.output,'ether')+'</li>');
+                        break;
+                        default:
+                            console.log(res.event);
+                        break;
+                    }
+                } else { console.log(JSON.stringify(err)); }
             });
-            var DebtAgreementEvent = lendx.DebtAgreementEvent({}, {fromBlock: 0, toBlock: 'latest'});
-            DebtAgreementEvent.watch(function(err, res){
-                console.log(res);
-                $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args.output,'ether')+'</li>');
-            });
-            var LogError = lendx.LogError({}, {fromBlock: 0, toBlock: 'latest'});
-            LogError.watch(function(err, res){
-               if (!err){
-                    // console.log(res);
-                    var errorCode = [
-                        "REQUEST_EXPIRED",
-                        "LOAN_FILLED",
-                        "ROUNDING_ERROR_TOO_LARGE",
-                        "INSUFFICIENT_BALANCE_OR_ALLOWANCE",
-                        "lENDER_PARTIAL_LOAN_NOT_ALLOWABLE"
-                    ];
-                    $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+errorCode[String(res.args.errorCode)]+'</li>');
-                }
-            });
-            //ERC20 Transfer
-            var Transfer = erc20Contract.at('0xf426505ac145abe033fe77c666840063757be9cd').Transfer({}, {fromBlock: 0, toBlock: 'latest'});
-            Transfer.watch(function(err, res){
-                $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args._value,'ether')+'</li>');
-            });
+            // //ERC20 Transfer
+            // var Transfer = erc20Contract.at('0x9fbda871d559710256a2502a2517b794b482db40').Transfer({}, {fromBlock: 0, toBlock: 'latest'});
+            // Transfer.watch(function(err, res){
+            //     $("#logs").prepend('<li>'+res.event+' ('+res.type+') '+web3.fromWei(res.args._value,'ether')+'</li>');
+            // });
 
             //Watch Transactions
             // var txFilter = web3.eth.filter('latest');
