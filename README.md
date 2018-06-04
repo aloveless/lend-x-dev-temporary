@@ -14,10 +14,10 @@ The Lend-X Protocol is cool
 
 ### Access Control
 ##### [MultiSigWallet.sol](/contracts/MultiSigWallet.sol)
-Using MultiSigWallet developed by the Gnosis team
-https://github.com/gnosis/MultiSigWallet
-Wallet is being used by several projects with significant funds and has been audited by the OpenZeppelin team, audit results:
-https://blog.zeppelin.solutions/gnosis-multisig-wallet-audit-d702ff0e2b1e
+Using MultiSigWallet developed by the Gnosis team  
+https://github.com/gnosis/MultiSigWallet  
+Wallet is being used by several projects with significant funds and has been audited by the OpenZeppelin team, audit results:  
+https://blog.zeppelin.solutions/gnosis-multisig-wallet-audit-d702ff0e2b1e  
 
 ##### [Ownable.sol](/contracts/Ownable.sol)
 ##### [Authorized.sol](/contracts/Authorized.sol)
