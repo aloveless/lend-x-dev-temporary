@@ -6,9 +6,8 @@ The Lend-X Protocol is cool
 ### Protocol
 ##### [Lend.sol](/contracts/Lend.sol)
 ##### [PaymentHandler.sol](/contracts/PaymentHandler.sol)
-
-### Storage
 ##### [ExternalStorage.sol](/contracts/ExternalStorage.sol)
+##### [ERC20Interface.sol](/contracts/ERC20Interface.sol)
 
 ### Registry
 ##### [TokenRegistry.sol](/contracts/TokenRegistry.sol)
@@ -21,10 +20,6 @@ The Lend-X Protocol is cool
 ### Utility
 ##### [ECRecovery.sol](/contracts/ECRecovery.sol)
 ##### [SafeMath.sol](/contracts/SafeMath.sol)
-
-### Interfaces
-ERC20 function definitions needed to interact with ERC20 standard tokens
-##### [ERC20Interface.sol](/contracts/ERC20Interface.sol)
 
 
 ### ICO Related Contracts that are not part of the protocol
