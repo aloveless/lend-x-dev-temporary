@@ -27,6 +27,6 @@ https://blog.zeppelin.solutions/gnosis-multisig-wallet-audit-d702ff0e2b1e
 ##### [SafeMath.sol](/contracts/SafeMath.sol)
 
 
-### ICO Related Contracts that are not part of the protocol
+### ICO Related Contracts not part of the protocol
 ##### [ERC20.sol](/ico/ERC20.sol)
 The ERC20.sol contract is not part of the protocol, just storing our ICO token contract here for now.
