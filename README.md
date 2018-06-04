@@ -28,5 +28,6 @@ https://blog.zeppelin.solutions/gnosis-multisig-wallet-audit-d702ff0e2b1e
 
 
 ### ICO Related Contracts not part of the protocol
+https://blog.zeppelin.solutions/the-4-stages-of-a-token-sale-cc88fbe1717a  
 ##### [ERC20.sol](/ico/ERC20.sol)
-The ERC20.sol contract is not part of the protocol, just storing our ICO token contract here for now.
+
