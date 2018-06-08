@@ -8,7 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@0.20.6/dist/web3.min.js"></script>
     <script>
         if (typeof window.web3 !== 'undefined') {
             web3 = new Web3(web3.currentProvider);
@@ -321,8 +321,8 @@
 
         //Contract Objects
         protocolToken = erc20Contract.at('0x8f0483125fcb9aaaefa9209d8e9d7b9c8b9fb90f');
-        lendx = lendContract.at('0x9f544a3fc3d1045e6ec49d4ecef6dcd700457165');
-        paymentHandler = '0xb9b7e0cb2edf5ea031c8b297a5a1fa20379b6a0a';
+        lendx = lendContract.at('0xf204a4ef082f5c04bb89f7d5e6568b796096735a');
+        paymentHandler = '0xaa588d3737b611bafd7bd713445b314bd453a5c8';
 
         tokenRegistry = [
             '0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4',
@@ -544,7 +544,7 @@
                 lendx.getDebtHash(debtRequestArgs.loanAddresses, debtRequestArgs.loanValues, function(err, hash){
                     if(!err){
                         console.log('Debt Hash: '+hash);
-                        //web3.personal.sign(hash, web3.eth.accounts[0], function(err, sig){
+                        //web3.personal.sign(hash, web3.eth.defaultAccount, function(err, sig){
                         web3.eth.sign(web3.eth.defaultAccount, hash, function(err, sig){
                             if(!err){
                                 lendx.validSignature(web3.eth.defaultAccount, hash, sig, function(err, res){
@@ -725,7 +725,7 @@
                     //Fixed Payment Loan
                     //# of payments = (-1*Math.log(1-((principal/payment amount)*(periodic interest rate/100))))/Math.log(1+(periodic interest rate/100))
                     if(formTermsData.periodicInterestRate > 0){
-                        //compound interest
+                        //interest (compound or simple)
                         allowances.numPayments = ((web3.toBigNumber(-1).mul(web3.toBigNumber(Math.log(web3.toBigNumber(1).minus(((web3.toBigNumber(principalAmount).div(web3.toBigNumber(paymentAmount))).mul(web3.toBigNumber(periodicInterestRate/100)))))))).div(web3.toBigNumber(Math.log(1+(periodicInterestRate/100)))));
                         allowances.totalRepayment = allowances.numPayments.mul(web3.toBigNumber(paymentAmount));
                         allowances.protocolFees = web3.toBigNumber(originationFee).plus(web3.toBigNumber(guarantorFee)).plus(web3.toBigNumber(lendeeAgentFee));
@@ -737,7 +737,6 @@
                         allowances.protocolFees = web3.toBigNumber(originationFee).plus(web3.toBigNumber(guarantorFee)).plus(web3.toBigNumber(lendeeAgentFee));
                         allowances.principalToken = principalToken;
                     }
-                    //need another condition for simple interest when the Lendee option is included
                     callback(allowances);
                 });
             });
