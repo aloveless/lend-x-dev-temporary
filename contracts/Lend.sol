@@ -132,6 +132,7 @@ contract Lend is Ownable {
         //require(tokenRegistry.validateToken(_tokenAddress));
         
         require(debt.lender == address(0) || debt.lender == msg.sender, "Invalid Lender");
+        require(debt.underwriter == address(0) || debt.underwriter != debt.lendee, "Invalid Underwriter");
         require(debt.principal > 0 && debt.paymentAmount > 0 && debt.paymentInterval > 0 && _amountToLend > 0, "Invalid Amounts Provided");
         require(validSignature(debt.lendee, debt.debtHash, _lendeeSig), "Lendee Signature Validation Failed");
         
@@ -239,11 +240,17 @@ contract Lend is Ownable {
         return lenderLoanAmount;
     }
     
-    //Separating partial fill from full fill request
-    //partial will be like a crowdfunded loan where it's first transferred to payment paymentHandler
-    //and then lendee withdraws committed amount if min comittment is achieved
-    //full will require full amount by address which could be another contract in reality
-    function processFullDebtRequest(){
+    //crowdfunded loan where it's first transferred to payment paymentHandler
+    //then lendee withdraws committed amount if min comittment is achieved
+    function processPublicDebtOffering(){
+        
+    }
+    
+    //crowdfunded loan where lendee/or underwriter doesn't sign offer,
+    //whoever doesn't sign can submit committed amount
+    //instead of leaving out sigs could also be another signed array parameter called _servicingOptions
+    //separate function since parameters are different
+    function processLendeeControlledDebtOffering(){
         
     }
     
