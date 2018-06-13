@@ -261,7 +261,7 @@ contract Lend is Ownable {
         
     }
     
-    function transferDebt(bytes32 _debtHash, address _newHolder) public returns(bool){
+    function transferDebt(bytes32 _debtHash, address _newHolder, bytes[] _newHolderSig, uint256 _transferAmount) public returns(bool){
         require(!keyExists(_debtHash));
         
     }
