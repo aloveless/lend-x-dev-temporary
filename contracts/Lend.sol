@@ -261,6 +261,11 @@ contract Lend is Ownable {
         
     }
     
+    function transferDebt(bytes32 _requestID, uint256 _newOwner) public returns(bool){
+        require(!keyExists(_requestID));
+        
+    }
+    
     function getDebtHash(address[8] _loanAddresses, uint256[15] _loanValues) public pure returns(bytes32){
         return keccak256(_loanAddresses, _loanValues);
         
@@ -355,20 +360,10 @@ contract Lend is Ownable {
     function getInterestAccrued(address _requestor) public view returns(uint256){
         //return externalStorage.getRequestCount(_requestor);
     }
-    
-    //only swaps out Lender address
-    function transferDebtOwnership(bytes32 _requestID, uint256 _newOwner) public returns(bool){
-        require(!keyExists(_requestID));
-        
-    }
 
     function forgiveDebt(bytes32 debtHash, uint256 amountToForgive) public returns(bool){
         // also need to reduce principal by Lender amount not withdrawn and possibly some interest accrued?
         externalStorage.setLenderBooleanValue(debtHash, msg.sender, keccak256("ForgiveDebt"), true);
-    }
-    
-    function initiateSecondaryDebtSale(){
-        
     }
     
     function keyExists(bytes32 _requestID) internal view returns(bool){
