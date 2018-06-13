@@ -40,7 +40,7 @@ contract Lend is Ownable {
     event LogError(uint8 indexed errorCode, bytes32 indexed debtHash);
     event DeprecatedEvent(address supercededBy);
     event LockedEvent(bool status);
-    
+    event DebtTransferEvent(bytes32 debtHash, address _from, address _to);
     event DebtAgreementEvent(
         address indexed lendee,
         address lender,
@@ -60,7 +60,7 @@ contract Lend is Ownable {
         uint256 defaultPeriod,
         uint256 lendeeAgentFee,
         uint256 lenderAgentFee,
-        bytes32 debtAgreementHash //should this be indexed
+        bytes32 debtHash //should this be indexed
     );
     
     struct DebtAgreement {
