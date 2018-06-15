@@ -261,12 +261,12 @@ contract Lend is Ownable {
         
     }
     
-    function transferDebt(bytes32 _debtHash, address _newHolder, bytes[] _newHolderSig, uint256 _transferAmount) public returns(bool){
-        require(!keyExists(_debtHash));
+    function transferDebt(address[8] _loanAddresses, uint256[15] _loanValues, address _newHolder, uint256 _paymentAmount, uint256 _transferAmount, bytes _holderSig) public returns(bool){
+        //require(!keyExists(_debtHash));
         
     }
     
-    function massDebtTransfer(bytes32[] _debtHash, address[] _newHolder) public returns(bool){
+    function massDebtTransfer(bytes32[] _debtHash, address[] _newHolder, bytes _lenderSig) public returns(bool){
         
     }
     
