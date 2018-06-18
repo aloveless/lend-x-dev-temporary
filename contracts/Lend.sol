@@ -41,26 +41,38 @@ contract Lend is Ownable {
     event DeprecatedEvent(address supercededBy);
     event LockedEvent(bool status);
     event DebtTransferEvent(bytes32 debtHash, address _from, address _to);
+    // event DebtAgreementEvent(
+    //     address indexed lendee,
+    //     address lender,
+    //     address principalToken,
+    //     address underwriter,
+    //     address collateralToken,
+    //     address indexed guarantor,
+    //     address indexed agent,
+    //     uint256 lenderLoanAmount, //let lendee know amount loaned
+    //     uint256 originationFee,
+    //     uint256 loanTerm,
+    //     uint256 periodicInterestRate,
+    //     uint256 paymentAmount,
+    //     uint256 paymentInterval,
+    //     uint256 lateFee,
+    //     uint256 collateralAmount,
+    //     uint256 defaultPeriod,
+    //     uint256 lendeeAgentFee,
+    //     uint256 lenderAgentFee,
+    //     bytes32 debtHash //should this be indexed
+    // );
     event DebtAgreementEvent(
-        address indexed lendee,
+        address[8] _loanAddresses,
+        uint256[15] _loanValues,
+        uint256 lenderLoanAmount, // amount actually loaned
         address lender,
-        address principalToken,
-        address underwriter,
-        address collateralToken,
-        address indexed guarantor,
-        address indexed agent,
-        uint256 lenderLoanAmount, //let lendee know amount loaned
-        uint256 originationFee,
-        uint256 loanTerm,
-        uint256 periodicInterestRate,
-        uint256 paymentAmount,
-        uint256 paymentInterval,
-        uint256 lateFee,
+        // there could be guarantor in lendee message and lender added later, 
+        // might need an array of values
+        address guarantor, //same as loanAddresses unless lender added at later point
+        address collateralToken, //same as loanAddresses unless lender added at later point
         uint256 collateralAmount,
-        uint256 defaultPeriod,
-        uint256 lendeeAgentFee,
-        uint256 lenderAgentFee,
-        bytes32 debtHash //should this be indexed
+        bytes32 debtHash
     );
     
     struct DebtAgreement {
@@ -261,7 +273,7 @@ contract Lend is Ownable {
         
     }
     
-    function transferDebt(address[8] _loanAddresses, uint256[15] _loanValues, address _newHolder, uint256 _paymentAmount, uint256 _transferAmount, bytes _holderSig) public returns(bool){
+    function transferDebt(address[8] _loanAddresses, uint256[15] _loanValues, address _newHolder, uint256 _discountAmount, uint256 _transferPrincipalAmount, uint256 expires, bytes _currentHolderSig) public returns(bool){
         //require(!keyExists(_debtHash));
         
     }
