@@ -269,7 +269,7 @@ contract Lend is Ownable {
     //If guarantor is not part of original signed request lender can separatly include
     //this could also be part of original function as separate guarantor array argument
     //breaking into separate function for now and will probably be part of v2
-    function submitLenderGuaranteedDebtAgreement(){
+    function processLenderGuaranteedDebtAgreement(){
         
     }
     
@@ -278,7 +278,7 @@ contract Lend is Ownable {
         
     }
     
-    function massDebtTransfer(bytes32[] _debtHash, address[] _newHolder, bytes _lenderSig) public returns(bool){
+    function massTransferDebt(bytes32[] _debtHash, address[] _newHolder, bytes _lenderSig) public returns(bool){
         
     }
     
