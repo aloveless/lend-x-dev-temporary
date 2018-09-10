@@ -108,7 +108,7 @@ contract Lend is Ownable {
     }
 
     /** 
-    * @dev Process offchain Debt Request
+    * @dev Process Loan Request
     * @param _lenderLoanOptions array of Lender conditions that must be met before tokens are transferred. [0] = allowPartialLoan
     * @return Total amount of consideration transfered from Lender to Lendee.
     */
@@ -252,24 +252,52 @@ contract Lend is Ownable {
         return lenderLoanAmount;
     }
     
-    //crowdfunded loan where it's first transferred to payment paymentHandler
-    //then lendee withdraws committed amount if min comittment is achieved
-    function processPublicDebtOffering(){
+    //arrays or array of structs for guarantors, collateral & lenders
+    //array parameter called _servicingOptions
+    function submitMultiAddressLoanRequest(){
+        
+        //processing notes:
+        //(1) lender mapping should be updated first, so iterating through guarantor array is
+        //efficient. for each guarantor check that the lender actually loaned tokens,
+        //otherwise throw error
+    }
+    
+    
+    //Offchain signature commitments are collected and submitted by the underwriter or lendee
+    function submitOffchainTokenCommitments(){
+        //strategies:
+        //(1) no lendee sig - no lender specified - lender signs message and lets lendee submit
+        //(2) no lendee sig - lenders add commitment to msg as soft commitment - if min commitment 
+        //is reached lenders is msg add signature - lendee submits.
+        
+        //processing notes:
+        //(1) tokens are transferred and loan is issued if request is valid
+    }
+
+    //lendee request lender committed funds, loan is issued
+    function requestCommittedTokens(){
         
     }
     
-    //crowdfunded loan where lendee/or underwriter doesn't sign offer,
-    //whoever doesn't sign can submit committed amount
-    //instead of leaving out sigs could also be another signed array parameter called _servicingOptions
-    //separate function since parameters are different
-    function processLendeeControlledDebtOffering(){
+    //if guarantor is not part of original signed request lender can separatly include a specific guarantor
+    //guarantor signs different message with expiration and fee to charge the lender
+    //submitted by lender, could also be the guarantor calling function
+    function addGuarantor(){
+
+        //processing notes:
+        //(1) fee and collateral transfered even if loan has not been issued yet
+    }
+    
+    function releaseGuarantor(){
         
     }
     
-    //If guarantor is not part of original signed request lender can separatly include
-    //this could also be part of original function as separate guarantor array argument
-    //breaking into separate function for now and will probably be part of v2
-    function processLenderGuaranteedDebtAgreement(){
+    function releaseCollateral(){
+        
+    }
+    
+    //external contract should return new outstanding debt, late fee
+    function externalValidate(){
         
     }
     
