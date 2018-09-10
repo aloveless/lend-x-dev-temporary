@@ -15,11 +15,6 @@ contract ExternalStorage is Authorized {
     //mapping(bytes32 => mapping(uint256 => address)) public LendeeMapAccounts;
     mapping(bytes32 => mapping(address => mapping(bytes32 => uint256))) public LenderUIntStorage;
     mapping(bytes32 => mapping(address => mapping(bytes32 => bool))) public LenderBooleanStorage;
-    //mapping(address => uint256) public RequestCount;
-    
-    //function getRequestCount(address _requestor) external view returns(uint){
-    //    return RequestCount[_requestor];
-    //}
 
     function setUIntValue(bytes32 _requestID, bytes32 _var, uint256 _value) external {
         UIntStorage[_requestID][_var] = _value;
